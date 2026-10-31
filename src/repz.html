@@ -357,7 +357,7 @@ svg.fig{width:100%;max-width:320px;margin:0 auto;display:block}
 <div class="wrap">
   <header class="top">
     <div><div class="label" id="todayLbl"></div><div class="hello" id="hello"></div><h1 id="pageTitle">Séance</h1><p class="motto" id="motto"></p></div>
-    <div class="week" id="weekBox" aria-label="Séances cette semaine"><button class="themebtn" id="themeBtn" type="button" aria-label="Thème"></button><div id="weekRing"></div><span class="label num" id="weekLbl"></span></div>
+    <div class="week" id="weekBox" aria-label="Séances cette semaine"><div class="row" style="gap:6px;flex-wrap:nowrap"><button class="themebtn" id="shareBtn" type="button" aria-label="Envoyer l'app à quelqu'un"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Inviter</button><button class="themebtn" id="themeBtn" type="button" aria-label="Thème"></button></div><div id="weekRing"></div><span class="label num" id="weekLbl"></span></div>
   </header>
 
   <main id="tab-seance" class="col">
@@ -475,6 +475,7 @@ svg.fig{width:100%;max-width:320px;margin:0 auto;display:block}
       <p class="hint">Tes séances sont gardées sur ce téléphone. Exporte un fichier de temps en temps (par exemple dans iCloud Drive) pour ne rien perdre.</p>
       <div class="row"><button class="btn small" id="bkExport">Exporter mes données</button><label class="btn small ghost" for="bkFile" style="cursor:pointer">Restaurer un fichier</label><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
       <p class="hint" id="bkKey"></p>
+      <p class="hint" id="bkName"></p>
       <p class="msg" id="bkMsg"></p>
     </div>
     <p class="msg" id="progMsg"></p>
@@ -1394,7 +1395,7 @@ function renderWeek(){
   $("#weekRing").innerHTML=`<svg viewBox="0 0 64 64" width="64" height="64" style="display:block;transform:rotate(-90deg)">${Array.from({length:G},(_,i)=>`<circle cx="32" cy="32" r="${R0}" fill="none" stroke="${wk[i]?TYPES[wk[i].type]?.c:"var(--line)"}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${Math.max(1,seg-gap)} ${C}" stroke-dashoffset="${-i*seg}"/>`).join("")}</svg><b class="ringnum num">${n}<small>/${WEEK_GOAL}</small></b>`;
   const d=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"short"});
   $("#todayLbl").innerHTML=`<span class="sync ${mode==="db"?"on":""}">${d}</span>`;
-  const h=new Date().getHours();$("#hello").textContent=(h<5?"Bonne nuit":h<12?"Bonjour":h<18?"Salut":"Bonsoir")+" Tullio";
+  const h=new Date().getHours();$("#hello").textContent=(h<5?"Bonne nuit":h<12?"Bonjour":h<18?"Salut":"Bonsoir")+" "+((window.REPZ&&window.REPZ.name&&window.REPZ.name())||"Tullio");
   const MOTTOS=["Chaque série compte.","Une rep de plus que la dernière fois.","La régularité bat l'intensité.","Échauffe-toi bien, grimpe mieux.","Le plus dur, c'est de venir. Tu es là.","Technique d'abord, charge ensuite."];
   $("#motto").textContent=n>=WEEK_GOAL?"Objectif de la semaine atteint, bravo !":MOTTOS[(new Date().getDate()+n)%MOTTOS.length];
 }
@@ -1814,11 +1815,13 @@ $("#phaseCard").addEventListener("click",async e=>{const b=e.target.closest("but
   try{await saveProgram({...clone(program),phase:{n,start:n===1?null:todayISO()}})}catch{}renderPhase();renderSession()});
 function renderBackup(){
   if(!window.REPZ)return;$("#backupCard").hidden=false;
+  $("#bkName").innerHTML=`Prénom : <b>${esc(window.REPZ.name()||"")}</b> <button class="link" id="bkNameEd">Changer</button>`;
   $("#bkKey").innerHTML=window.REPZ.hasKey()?`Clé Claude enregistrée (pour « Coller une séance »). <button class="link" id="bkKeyDel">Retirer la clé</button>`:"Clé Claude : pas encore enregistrée. Elle te sera demandée la première fois que tu colles une séance.";
 }
 $("#backupCard").addEventListener("click",async e=>{
   const m=$("#bkMsg");
   if(e.target.id==="bkKeyDel"){window.REPZ.clearKey();renderBackup();return}
+  if(e.target.id==="bkNameEd"){await window.REPZ.askName();renderBackup();renderWeek();return}
   if(e.target.id!=="bkExport")return;
   try{const txt=await window.REPZ.exportAll(),name="repz-"+todayISO()+".json",file=new File([txt],name,{type:"application/json"});
     if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name})}
@@ -2007,4 +2010,14 @@ connect();connectSample();
   apply();
   document.getElementById("themeBtn")?.addEventListener("click",()=>{t={auto:"light",light:"dark",dark:"auto"}[t];try{localStorage.setItem("repz_theme",t)}catch(e){}apply()});
 })();
+
+/* inviter quelqu'un : partage du lien de l'appli (chacun aura son propre carnet) */
+const APP_URL="https://tulliodisegni-art.github.io/Repz/";
+$("#shareBtn").addEventListener("click",async()=>{
+  const text="Je note mes séances de muscu avec Repz. Ouvre le lien dans Safari, puis Partager → « Sur l'écran d'accueil ». Ton carnet reste sur ton téléphone.";
+  try{if(navigator.share){await navigator.share({title:"Repz",text,url:APP_URL});return}}catch(e){if(e&&e.name==="AbortError")return}
+  try{await navigator.clipboard.writeText(text+"\n"+APP_URL);toastMsg("Lien copié, colle-le dans un message.")}
+  catch{toastMsg("Lien : "+APP_URL)}
+});
+function toastMsg(t){let d=document.getElementById("toastx");if(!d){d=document.createElement("div");d.id="toastx";d.setAttribute("role","status");d.style.cssText="position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:50;background:var(--navy);color:#fff;border:1px solid var(--gold);border-radius:14px;padding:10px 16px;font-weight:600;max-width:90vw;text-align:center;box-shadow:var(--shadow-lg)";document.body.appendChild(d)}d.textContent=t;d.hidden=false;clearTimeout(d._t);d._t=setTimeout(()=>d.hidden=true,3500)}
 </script>

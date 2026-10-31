@@ -17,17 +17,25 @@ const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
 const isObj=v=>v&&typeof v==="object"&&!Array.isArray(v);
 const rid=n=>{const c="abcdefghijklmnopqrstuvwxyz0123456789",a=crypto.getRandomValues(new Uint8Array(n));return Array.from(a,x=>c[x%36]).join("")};
 
+const NAME="repz_name";
+const getName=()=>{try{return localStorage.getItem(NAME)||""}catch{return ""}};
+const setName=n=>{try{localStorage.setItem(NAME,String(n||"").trim().slice(0,30))}catch{}};
 let cache=null;
 const loadAll=()=>cache||(cache=(async()=>{
   const d=await idb;
   const m=await new Promise((ok,ko)=>{const out=new Map(),cur=d.transaction("docs","readonly").objectStore("docs").openCursor();
     cur.onsuccess=()=>{const c=cur.result;if(c){out.set(c.key,c.value);c.continue()}else ok(out)};cur.onerror=()=>ko(cur.error)});
-  // premier lancement : reprise des séances de la version Claude
-  if(!m.size&&!localStorage.getItem("repz_seeded")){
+  // Données de Tullio : seulement avec le lien perso (?moi), et seulement si aucune séance n'est encore enregistrée.
+  // Tout autre premier lancement démarre vide (programme de base fourni par l'app).
+  const wantMine=/[?&]moi\b/.test(location.search);
+  const hasWorkouts=[...m.keys()].some(k=>k.startsWith("workouts/"));
+  if(wantMine&&!hasWorkouts){
     try{const r=await fetch("seed.json",{cache:"no-store"});if(r.ok){const seed=await r.json();
-      await tx("readwrite",s=>{for(const [k,v] of Object.entries(seed))s.put(v,k)});for(const [k,v] of Object.entries(seed))m.set(k,v)}}catch{}
-    try{localStorage.setItem("repz_seeded","1")}catch{}
+      await tx("readwrite",s=>{for(const [k,v] of Object.entries(seed))s.put(v,k)});for(const [k,v] of Object.entries(seed))m.set(k,v);
+      setName("Tullio")}}catch{}
   }
+  if(wantMine&&!getName())setName("Tullio");
+  if(wantMine)try{history.replaceState(null,"",location.pathname)}catch{}
   return m;
 })());
 
@@ -83,7 +91,7 @@ function collRef(coll){
 const db=Object.freeze({collection:collRef,doc:p=>{const i=p.lastIndexOf("/");return docRef(p.slice(0,i),p.slice(i+1))}});
 
 /* ---------- identité : une seule personne, propriétaire ---------- */
-const me={id:"local",name:"Tullio",avatarUrl:"icons/icon-192.png",color:"#1C3170",email:null,isOwner:true,canEdit:true};
+const me={id:"local",get name(){return getName()},avatarUrl:"icons/icon-192.png",color:"#1C3170",email:null,isOwner:true,canEdit:true};
 const user=Object.freeze({isOwner:async()=>true,canEdit:async()=>true,can:async()=>true,me:async()=>({...me}),id:async()=>"local",name:async()=>me.name,
   avatarUrl:async()=>me.avatarUrl,email:async()=>null,search:async()=>[],
   profiles:async ids=>{const o={};for(const i of [].concat(ids))o[i]={id:i,name:i==="local"?me.name:"",avatarUrl:me.avatarUrl,color:me.color,email:null,isMe:i==="local",guest:false};return o}});
@@ -150,7 +158,17 @@ const sample=Object.freeze(Object.assign((i,o)=>call(i,o),{
 }));
 
 /* ---------- sauvegarde ---------- */
+function askName(){return new Promise(ok=>{
+  const d=document.createElement("div");
+  d.style.cssText="position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#1C3170,#0A1330);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Barlow,system-ui,sans-serif;color:#fff";
+  d.innerHTML='<form style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px;text-align:center"><img src="icons/icon-192.png" alt="" style="width:96px;height:96px;border-radius:24px;margin:0 auto;box-shadow:0 10px 30px rgba(0,0,0,.4)"><h1 style="margin:0;font-family:\'Barlow Condensed\',system-ui;font-size:2.4rem;text-transform:uppercase;color:#E9B949">Bienvenue sur Repz</h1><p style="margin:0;opacity:.85">Ton carnet de muscu. Tes séances restent sur ton téléphone.</p><input name="n" placeholder="Ton prénom" autocomplete="given-name" required maxlength="30" style="padding:14px;border-radius:14px;border:0;font-size:1.1rem;text-align:center;color:#0A1330"><button style="padding:15px;border:0;border-radius:14px;background:linear-gradient(135deg,#F2CB66,#E9B949 50%,#B98A2C);color:#0A1330;font-weight:800;font-size:1.1rem;text-transform:uppercase;letter-spacing:.05em">C\'est parti</button></form>';
+  document.body.appendChild(d);const f=d.querySelector("form");setTimeout(()=>f.n.focus(),100);
+  f.onsubmit=e=>{e.preventDefault();const v=f.n.value.trim();if(!v)return;setName(v);d.remove();ok(v)};
+})}
 window.REPZ={
+  name:()=>getName(),
+  setName:n=>setName(n),
+  askName,
   hasKey:()=>!!getKey(),
   clearKey:()=>{try{localStorage.removeItem(KEY)}catch{}},
   exportAll:async()=>{const m=await loadAll();const o={};for(const [k,v] of m)o[k]=v;return JSON.stringify({app:"repz",v:1,date:new Date().toISOString(),docs:o})},
@@ -160,6 +178,9 @@ window.REPZ={
 
 const caps={db,user,sample};
 window.claude=Object.freeze({use:name=>Promise.resolve(caps[name]||null)});
+
+// premier lancement sans prénom : écran d'accueil, puis rechargement pour que l'app l'affiche partout
+loadAll().then(()=>{if(getName())return;const go=()=>askName().then(()=>location.reload());document.body?go():addEventListener("DOMContentLoaded",go)});
 
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch{}
