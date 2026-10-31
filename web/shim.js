@@ -29,10 +29,12 @@ const loadAll=()=>cache||(cache=(async()=>{
   // Tout autre premier lancement démarre vide (programme de base fourni par l'app).
   const wantMine=/[?&]moi\b/.test(location.search);
   const hasWorkouts=[...m.keys()].some(k=>k.startsWith("workouts/"));
-  if(wantMine&&!hasWorkouts){
+  let mineDone=false;try{mineDone=!!localStorage.getItem("repz_mine_done")}catch{}
+  const isTullio=/^tullio$/i.test(getName().trim());
+  if(!hasWorkouts&&(wantMine||(isTullio&&!mineDone))){
     try{const r=await fetch("seed.json",{cache:"no-store"});if(r.ok){const seed=await r.json();
       await tx("readwrite",s=>{for(const [k,v] of Object.entries(seed))s.put(v,k)});for(const [k,v] of Object.entries(seed))m.set(k,v);
-      setName("Tullio")}}catch{}
+      if(!getName())setName("Tullio");try{localStorage.setItem("repz_mine_done","1")}catch{}}}catch{}
   }
   if(wantMine&&!getName())setName("Tullio");
   if(wantMine)try{history.replaceState(null,"",location.pathname)}catch{}
