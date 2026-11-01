@@ -2297,7 +2297,7 @@ const APP_URL="https://tulliodisegni-art.github.io/Repz/";
 function canShare(){return !window.REPZ||(window.Gate&&window.Gate.isOwner())||(window.REPZ.isOwner&&window.REPZ.isOwner())}
 function applyShare(){const b=$("#shareBtn");if(b)b.hidden=!canShare()}
 applyShare();
-if(window.Account)window.Account.ready.then(()=>{try{renderBackup()}catch(e){}});
+if(window.Account)window.Account.ready.then(()=>{try{applyShare();renderBackup()}catch(e){}});
 document.addEventListener("gate-owner",()=>{applyShare();if(typeof renderBackup==="function")renderBackup()});
 $("#shareBtn").addEventListener("click",async()=>{if(!canShare())return;
   if(window.Gate){window.Gate.invite();return}// appli installée : une invitation à usage unique par personne
