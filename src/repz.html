@@ -13,6 +13,8 @@
   --primary:var(--navy); --on-primary:#FFFFFF;
   --glass:rgba(255,255,255,.92); --dock:#FFFFFF; --dock-ink:#5C6584;
   --heat1:#F6E3AE; --heat2:#E9B949; --heat3:#B98A2C;
+  --fig-body:#DCE0EA; --fig-far:#B7BED2; --fig-line:#0A1330; --eq:#8790AB; --eq-dark:#4A5578; --m1:#E2412F; --m2:#F59A3C;
+  --h1:#FBDDB0; --h2:#F7A85E; --h3:#EC6B35; --h4:#C9301F;
   --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
   --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
   --r:22px; --shadow:0 1px 2px rgba(10,19,48,.05),0 8px 24px rgba(10,19,48,.08); --shadow-lg:0 14px 36px rgba(10,19,48,.2);
@@ -24,6 +26,8 @@
   --primary:var(--gold); --on-primary:#0A1330;
   --glass:rgba(13,21,48,.9); --dock:#101A3A; --dock-ink:#9AA6C6;
   --heat1:#5A4A1E; --heat2:#B98A2C; --heat3:#E9B949;
+  --fig-body:#33406E; --fig-far:#222D55; --fig-line:#C9D1EA; --eq:#6D78A0; --eq-dark:#9AA6C6; --m1:#FF5A45; --m2:#FFA552;
+  --h1:#7A5A2E; --h2:#BC7A30; --h3:#E8692F; --h4:#FF5A45;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); --shadow-lg:0 14px 36px rgba(0,0,0,.5);
   color-scheme:dark;
 }}
@@ -33,6 +37,8 @@
   --primary:var(--gold); --on-primary:#0A1330;
   --glass:rgba(13,21,48,.9); --dock:#101A3A; --dock-ink:#9AA6C6;
   --heat1:#5A4A1E; --heat2:#B98A2C; --heat3:#E9B949;
+  --fig-body:#33406E; --fig-far:#222D55; --fig-line:#C9D1EA; --eq:#6D78A0; --eq-dark:#9AA6C6; --m1:#FF5A45; --m2:#FFA552;
+  --h1:#7A5A2E; --h2:#BC7A30; --h3:#E8692F; --h4:#FF5A45;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); --shadow-lg:0 14px 36px rgba(0,0,0,.5);
   color-scheme:dark;
 }
@@ -137,6 +143,7 @@ details[open]>.sum::after{transform:rotate(-135deg)}
 .hero .bar i{display:block;height:100%;width:var(--p,0%);background:currentColor;border-radius:5px;transition:width .3s}
 .hero .prog{display:flex;justify-content:space-between;font-family:var(--display);font-weight:700;font-size:1rem;letter-spacing:.03em;text-transform:uppercase;position:relative}
 .hero .btn{background:var(--on-c);color:var(--c);position:relative;margin-top:4px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.hero .cancelbtn{position:relative;align-self:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:inherit;border-radius:999px;padding:7px 14px;font-weight:600;font-size:.88rem}
 .hero .tipline{font-size:.9rem;background:color-mix(in srgb,currentColor 14%,transparent);border-radius:10px;padding:7px 10px;position:relative}
 
 /* étapes */
@@ -285,13 +292,34 @@ table.base td.now{white-space:nowrap;font-variant-numeric:tabular-nums}
 .ex-tools{display:flex;gap:6px;flex-wrap:wrap}
 .ex-tools .chip[aria-pressed="true"]{background:var(--c);color:var(--on-c);border-color:var(--c)}
 .figbox{display:grid;gap:8px;background:var(--soft);border-radius:14px;padding:10px 12px}
-svg.fig{width:100%;max-width:320px;margin:0 auto;display:block}
-.fig .bd{stroke:var(--ink);stroke-width:5.5;stroke-linecap:round;stroke-linejoin:round;fill:none}
-.fig .far{stroke:var(--muted);opacity:.7}
-.fig .hd{fill:var(--ink)}
-.fig .eq{stroke:var(--c);stroke-width:3;fill:none;stroke-linecap:round}
-.fig .fill{fill:var(--c)} .fig .plate{stroke-width:4} .fig .thin{stroke-width:1.5} .fig .bench{stroke-width:5}
+svg.fig{width:100%;max-width:420px;margin:0 auto;display:block}
+.fig .bd{fill:var(--fig-body);stroke:var(--fig-line);stroke-width:1.2;stroke-linejoin:round}
+.fig .far{fill:var(--fig-far)} .fig .eye{fill:var(--fig-line)}
+.fig .mu{stroke:none} .fig .m1{fill:var(--m1)} .fig .m2{fill:var(--m2)}
+.fig .eq{stroke:var(--eq);stroke-width:3;fill:none;stroke-linecap:round}
+.fig .eq.fill{fill:var(--gold2);stroke:color-mix(in srgb,var(--gold2) 70%,#000);stroke-width:1}
+.fig .eq.plate{fill:var(--gold2);stroke:color-mix(in srgb,var(--gold2) 60%,#000);stroke-width:2}
+.fig .eq.thin{stroke-width:1.2} .fig .eq.bench{stroke-width:6;stroke:var(--eq-dark)} .fig .eq.bar{stroke-width:3.5;stroke:var(--eq-dark)}
 .fig .gr{stroke:var(--line);stroke-width:2}
+.mlist{display:grid;gap:7px}
+.mrow{display:grid;grid-template-columns:minmax(104px,1.25fr) 1.6fr 30px 80px;gap:8px;align-items:center;font-size:.9rem}
+.mrow.mhead{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-family:var(--display)} .mrow.mhead em{font-style:normal;text-transform:none;letter-spacing:0;font-family:var(--body)}
+.mname{line-height:1.15}
+.mbar{position:relative;height:12px;border-radius:6px;background:linear-gradient(90deg,transparent var(--z0),color-mix(in srgb,var(--go) 22%,transparent) var(--z0) var(--z1),transparent var(--z1)),var(--soft);overflow:hidden;border:1px solid var(--line)}
+.mbar i{position:absolute;inset:0 auto 0 0;border-radius:6px}
+.mval{text-align:right;font-weight:600}
+.mst{font-size:.75rem;font-weight:700;text-align:center;border-radius:999px;padding:2px 6px;white-space:nowrap}
+.mst.no{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger)} .mst.warn{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)} .mst.ok{background:color-mix(in srgb,var(--go) 16%,transparent);color:var(--go)}
+@media (max-width:400px){.mrow{grid-template-columns:98px 1fr 28px 76px;gap:6px;font-size:.84rem}}
+.mtips{background:color-mix(in srgb,var(--gold) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);border-radius:14px;padding:10px 14px}
+.mtips ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px;font-size:.9rem}
+#muscleCard svg.bmap{max-width:380px;margin:0 auto}
+.figmap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center}
+svg.bmap{width:100%;display:block}
+.bm{fill:var(--fig-body);stroke:var(--surface);stroke-width:5;stroke-linejoin:round} .bm0{fill:var(--fig-far)}
+.bm.m1{fill:var(--m1)} .bm.m2{fill:var(--m2)}
+.mlegend{display:grid;gap:6px;font-size:.88rem} .mlegend b{display:block;font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;font-size:.75rem;color:var(--muted)}
+.mlegend span{display:flex;gap:7px;align-items:flex-start} .mlegend i{flex:none;width:11px;height:11px;border-radius:50%;margin-top:4px} .mlegend i.m1{background:var(--m1)} .mlegend i.m2{background:var(--m2)}
 .cues{margin:0;padding-left:20px;font-size:.9rem;display:grid;gap:3px}
 .edpanel{display:grid;gap:10px;border:1.5px dashed var(--c);border-radius:14px;padding:12px}
 .chip.danger{border-color:var(--danger);color:var(--danger)}
@@ -805,110 +833,190 @@ function progressTip(e,last){
   return e.pdc?"Objectif atteint la dernière fois : ajoute du lest ou 1 rep":"";
 }
 
-/* ---------- schémas animés des exercices ----------
-   Bonhomme vu de profil (tourné vers la droite) ou de face. Chaque exercice = 2 positions clés,
-   l'animation passe de l'une à l'autre. Les mains et les pieds sont placés par cible (cinématique inverse). */
-const FIG={T:40,N:12,HR:7,UA:22,FA:20,TH:30,SH:28,FT:9};
+const BODYMAP={"F":[["CH","M259 208C250 219 250 262 255 276C260 289 276 290 290 290C304 290 329 286 339 278C350 269 358 248 353 237C348 225 326 213 310 208C294 203 268 197 259 208ZM149 233C144 244 148 268 157 278C166 287 190 290 204 290C218 290 235 289 241 276C247 262 248 221 239 210C230 199 203 206 188 210C173 214 154 221 149 233Z"],["OB","M343 317C344 306 345 289 337 286C328 282 300 292 294 298C288 304 299 301 300 321C301 340 297 404 302 417C307 429 323 405 329 394C334 383 330 362 333 349C335 336 342 327 343 317ZM170 392C164 382 168 372 166 359C163 346 156 329 155 317C154 304 153 289 161 286C169 282 198 291 204 296C210 301 197 296 196 317C195 337 200 406 196 419C192 431 175 402 170 392Z"],["AB","M282 296C287 302 288 305 290 321C292 336 292 366 292 390C292 414 294 447 292 464C290 481 284 483 282 492C279 502 280 513 276 521C271 528 260 555 257 539C254 523 256 456 255 423C254 389 253 359 253 337C253 314 250 292 255 286C260 279 276 290 282 296ZM219 294C225 288 239 278 243 286C247 293 245 314 245 337C245 359 244 389 243 423C242 456 244 521 241 537C238 553 229 532 223 519C216 505 207 478 204 457C201 436 204 414 204 392C204 370 204 339 206 323C208 306 212 300 219 294Z"],["BI","M84 341C82 354 85 359 90 357C95 355 105 345 115 331C124 316 141 283 145 270C149 256 146 245 139 247C132 249 111 264 102 280C93 295 86 328 84 341ZM357 247C350 246 347 260 351 274C355 287 372 316 382 331C391 345 403 357 408 359C414 361 417 359 415 345C412 331 404 294 394 278C384 261 364 248 357 247Z"],["TR","M347 278C342 273 342 294 347 308C352 322 373 356 380 364C386 371 388 356 388 351C388 347 384 349 378 337C371 324 352 282 347 278ZM112 347C118 332 143 285 149 278C155 270 155 289 149 304C143 319 121 358 115 366C108 373 106 362 112 347Z"],["NK","M278 119C271 121 257 155 253 168C249 180 244 191 253 196C262 201 291 195 308 200C325 205 347 227 353 225C360 222 353 192 347 184C341 175 326 181 317 176C307 170 299 163 292 153C286 144 284 116 278 119ZM145 225C139 222 145 194 151 186C157 177 172 181 182 176C191 170 199 160 206 151C213 142 216 119 223 123C229 126 242 157 245 170C248 182 252 191 243 196C234 201 206 193 190 198C174 203 152 227 145 225Z"],["DA","M392 266C399 266 397 249 398 239C399 229 399 214 396 206C393 198 386 194 380 190C373 186 358 177 355 182C352 186 361 205 361 215C361 224 352 228 357 237C362 245 385 265 392 266ZM141 237C136 245 113 265 106 266C99 266 101 249 100 239C99 229 98 213 102 204C106 195 116 189 123 186C129 182 141 180 143 186C145 191 135 208 135 217C134 225 146 228 141 237Z"],["HD","M212 15C204 24 200 45 200 59C200 73 205 88 210 98C215 108 224 112 231 117C237 121 242 127 249 127C256 126 267 117 274 112C280 107 284 106 288 96C292 86 296 65 296 51C296 37 293 21 286 12C278 4 261 0 249 0C237 0 220 5 212 15Z"],["AD","M264 551C262 568 265 625 272 625C278 625 294 572 300 551C306 530 306 513 310 500C314 487 326 478 325 472C323 465 307 455 300 464C293 472 290 508 284 523C277 537 266 534 264 551ZM239 553C240 570 229 622 225 627C220 631 214 590 210 580C206 569 204 573 202 566C200 558 200 545 198 537C196 528 194 523 190 512C186 501 172 478 174 470C175 461 192 457 198 461C204 465 205 485 208 496C211 507 213 517 219 527C224 536 238 536 239 553Z"],["QU","M174 494C178 505 184 517 186 541C188 565 188 615 186 639C183 663 177 681 172 686C166 690 159 678 155 664C151 649 149 618 147 600C145 582 141 573 141 557C141 541 144 518 147 504C150 490 157 475 161 474C165 472 169 483 174 494ZM317 529C319 519 320 509 323 500C326 491 330 473 335 474C339 475 348 492 351 506C354 520 357 532 355 559C353 586 346 644 341 666C336 687 331 692 327 688C322 684 315 665 312 643C309 621 309 576 310 557C311 538 314 538 317 529ZM194 647C196 624 190 570 192 561C194 552 201 578 206 592C211 606 221 633 223 647C224 661 218 662 215 676C211 689 206 721 200 731C195 740 185 738 182 733C178 727 175 714 178 700C180 686 192 670 194 647ZM298 729C292 714 277 672 278 645C279 619 299 569 304 570C309 571 303 630 306 651C309 672 319 684 321 698C322 712 318 727 315 733C311 738 304 743 298 729ZM164 692C161 702 138 730 133 729C127 727 129 699 129 684C128 668 128 655 129 637C130 618 131 566 135 572C138 577 142 647 147 668C152 688 166 682 164 692ZM359 566C362 558 368 598 370 621C371 643 371 684 370 702C369 720 370 730 364 729C357 727 335 702 333 692C330 682 347 689 351 668C355 646 356 573 359 566Z"],["KN","M170 700C173 699 172 710 174 717C175 723 176 730 178 737C179 743 182 747 182 755C181 763 181 779 176 784C170 788 156 787 149 784C143 780 139 771 137 764C134 756 134 744 137 737C139 729 146 727 151 721C157 714 166 701 170 700ZM329 700C336 697 356 729 361 739C366 749 363 753 361 761C359 769 355 782 349 786C343 789 330 789 325 784C319 778 314 769 315 755C315 741 321 703 329 700Z"],["CA","M357 802C356 767 363 767 368 768C372 768 378 794 384 806C389 818 397 817 398 839C399 861 392 916 392 939C392 962 401 971 398 978C395 984 380 1007 374 978C367 948 358 837 357 802ZM125 974C130 948 136 853 139 825C142 796 142 811 141 802C140 793 133 774 131 772C128 769 128 782 125 788C121 794 115 800 112 808C109 817 104 817 104 839C104 861 110 918 110 941C110 964 102 972 104 978C106 983 119 999 125 974ZM364 976C367 961 355 827 349 796C343 765 331 789 327 792C322 795 322 806 321 812C320 818 319 814 321 827C322 839 321 861 329 886C336 910 360 990 364 976ZM178 792C182 795 179 805 180 812C180 819 180 826 180 835C179 843 176 853 176 861C175 869 178 875 176 884C173 892 165 901 161 910C157 919 157 926 153 937C149 947 137 973 135 974C132 974 135 951 137 939C138 927 140 912 141 902C142 892 142 886 143 878C144 869 144 859 145 849C146 840 148 830 149 821C150 811 146 799 151 794C156 789 173 789 178 792Z"],["FO","M31 443C39 422 44 391 51 376C58 360 68 352 74 351C79 350 78 369 82 372C85 374 106 348 96 368C86 387 39 466 23 488C7 510 -1 508 0 500C1 493 22 464 31 443ZM423 349C417 347 420 365 417 368C413 370 390 345 400 366C410 386 459 469 476 492C492 515 501 510 500 502C499 495 476 467 468 447C459 427 457 398 449 382C442 365 428 351 423 349ZM388 361C374 343 386 378 388 388C390 398 396 410 402 421C408 431 417 435 427 449C436 463 453 498 461 506C469 514 486 522 474 498C461 474 402 379 388 361ZM35 506C42 499 58 467 68 453C77 439 87 432 94 421C101 409 106 396 108 386C110 375 120 341 106 359C92 377 36 470 25 494C13 519 27 513 35 506Z"]],"B":[["HD","M253 0C245 0 238 0 230 5C222 9 209 18 205 28C200 37 199 52 202 64C206 76 213 94 226 100C238 106 267 105 279 100C290 95 292 81 296 68C299 55 301 34 298 24C295 13 286 10 279 7C271 3 261 0 253 0Z"],["TP","M224 109C227 104 236 95 239 109C241 122 236 156 236 192C236 227 246 311 239 324C231 336 202 286 192 266C181 246 183 218 177 205C171 191 152 189 156 183C159 177 185 174 196 166C206 158 214 146 219 136C224 126 220 113 224 109ZM262 109C264 95 275 104 279 109C282 113 279 127 283 136C287 145 294 156 305 164C315 172 341 177 345 183C348 189 330 188 324 202C318 216 319 246 309 266C298 286 269 336 262 324C254 311 266 227 266 192C266 156 259 122 262 109Z"],["DP","M147 185C144 179 125 189 115 196C105 202 91 209 87 222C83 234 86 264 92 268C97 272 114 253 122 247C129 241 132 242 136 232C140 222 151 191 147 185ZM356 185C361 180 382 192 392 198C401 204 410 212 413 224C416 235 415 265 409 268C402 272 382 252 375 245C367 237 365 235 362 226C358 216 351 190 356 185Z"],["UB","M156 194C151 200 143 231 141 245C138 258 138 255 143 277C147 299 154 363 170 377C186 390 225 363 236 356C247 348 245 346 236 332C227 318 194 291 183 270C172 249 173 219 168 207C163 194 160 187 156 194ZM345 194C349 200 357 232 360 247C362 262 362 259 358 281C353 303 346 364 330 377C314 389 275 363 264 356C253 348 255 346 264 332C273 318 306 293 317 273C328 252 327 222 332 209C337 195 340 187 345 194Z"],["TR","M134 249C127 249 100 260 90 279C79 297 74 340 73 362C71 383 77 416 83 409C89 401 100 341 109 319C117 297 130 290 134 279C138 267 141 249 134 249ZM368 251C375 251 400 259 411 279C421 298 429 344 430 366C431 388 424 419 417 411C410 402 398 337 390 315C381 293 370 289 366 279C362 268 361 251 368 251ZM134 292C138 294 137 328 134 343C131 357 121 369 115 377C109 384 96 395 96 387C95 379 107 343 113 328C119 312 131 289 134 292ZM364 292C368 288 379 308 385 324C391 339 402 378 402 387C402 396 389 384 383 377C377 369 367 359 364 345C361 330 361 295 364 292Z"],["LB","M239 364C228 359 183 376 173 385C162 394 164 396 177 417C189 438 237 511 247 511C257 510 235 439 234 415C233 391 249 369 239 364ZM262 364C272 358 317 376 328 385C338 394 336 396 324 417C311 438 263 510 253 511C243 511 265 443 266 419C267 395 251 370 262 364Z"],["FO","M432 379C438 378 450 402 456 417C461 432 459 451 466 470C473 489 498 523 500 532C503 541 491 536 481 522C471 507 450 464 441 447C431 430 423 430 422 419C420 408 426 379 432 379ZM68 379C62 379 50 404 45 419C39 434 41 449 34 468C27 487 3 523 0 532C-2 541 9 536 19 522C29 507 52 460 62 443C71 425 77 426 79 415C80 404 74 378 68 379ZM407 398C392 376 389 385 387 390C385 394 384 402 396 424C407 445 444 499 456 519C467 539 463 544 466 545C469 545 482 548 473 524C463 499 421 420 407 398ZM94 398C108 376 109 386 111 390C112 393 115 401 105 422C94 442 59 495 47 515C35 535 38 541 34 543C30 544 16 548 26 524C35 499 79 420 94 398Z"],["GL","M224 498C208 493 163 527 151 543C139 558 148 579 149 594C150 608 143 628 158 630C172 632 221 616 236 607C251 597 249 593 247 575C245 556 240 503 224 498ZM277 496C261 501 258 554 256 573C253 591 247 595 262 605C276 614 326 632 341 630C355 629 348 610 349 596C350 581 359 559 347 543C335 526 292 491 277 496Z"],["AX","M241 615C237 610 229 613 224 615C218 617 206 610 207 628C207 645 220 713 226 722C232 730 239 691 243 679C246 666 245 658 245 647C244 636 244 620 241 615ZM260 613C263 608 273 614 279 617C285 620 296 613 296 630C295 647 281 713 275 722C269 730 263 693 260 681C256 669 256 658 256 647C256 636 256 618 260 613Z"],["HA","M145 611C148 609 149 644 156 647C162 650 180 625 183 630C187 635 178 656 177 677C175 697 177 732 173 751C168 770 152 794 147 792C142 789 146 748 145 734C143 720 140 719 139 707C137 694 135 674 136 658C137 642 141 612 145 611ZM358 609C354 606 353 641 347 645C341 648 322 624 319 630C316 636 325 663 328 683C330 703 327 733 332 751C337 769 351 794 356 792C360 789 356 752 358 739C359 725 362 724 364 711C366 697 369 677 368 660C367 643 361 611 358 609ZM194 628C200 636 220 696 222 730C223 764 209 828 202 834C195 840 184 790 181 764C178 738 183 699 185 677C187 654 187 619 194 628ZM309 628C315 619 315 658 317 681C319 704 324 741 322 766C319 792 307 840 300 834C293 828 280 766 281 732C282 698 303 636 309 628Z"],["KN","M173 766C167 763 156 785 156 796C155 807 163 829 168 832C173 835 186 824 187 813C188 802 178 769 173 766ZM332 768C327 771 315 804 315 815C315 826 329 835 334 832C339 829 347 806 347 796C347 785 337 765 332 768Z"],["CA","M147 802C144 802 146 820 143 836C139 852 127 877 124 898C120 919 118 950 119 964C120 979 124 985 128 985C131 985 139 980 143 966C146 952 146 918 149 900C152 882 158 867 160 856C161 845 162 843 160 834C157 825 150 802 147 802ZM187 826C184 825 180 833 177 839C173 844 170 849 166 860C163 870 158 885 156 902C153 919 149 943 151 960C153 976 163 1001 170 1000C177 999 189 979 194 953C198 927 197 866 196 845C194 823 190 827 187 826ZM315 826C310 824 308 821 307 843C305 864 304 927 309 953C313 979 325 997 332 998C339 999 351 976 353 960C355 943 348 916 345 898C341 880 339 863 334 851C329 839 320 827 315 826ZM353 802C357 802 357 827 362 843C366 858 375 875 379 896C382 916 384 949 383 964C382 979 376 982 373 983C369 984 365 982 362 968C358 954 357 919 353 898C350 877 341 857 341 841C341 825 350 802 353 802Z"],["SO","M143 979C145 976 147 974 151 979C155 984 168 988 168 1009C168 1029 157 1090 153 1100C149 1110 146 1086 143 1068C139 1050 134 1006 134 992C134 977 140 981 143 979Z"],["SO","M349 979C353 973 356 976 360 979C363 981 368 977 368 992C368 1006 362 1048 360 1066C357 1084 355 1107 351 1098C347 1089 336 1030 336 1011C336 991 345 984 349 979Z"]]};
+/* ---------- schémas animés des exercices, avec muscles ----------
+   Silhouette de profil (ou de face) en volumes, 2 positions clés, l'animation passe de l'une à l'autre.
+   Muscles principaux en rouge, secondaires en orange, sur la silhouette ET sur la carte face/dos.
+   Muscles par exercice : répertoire ExRx (cible / synergistes). Comptage du volume : séries directes = 1,
+   indirectes = 0,5 (méthode « fractionnelle », Pelland et al. 2024). Contours de la carte : react-body-highlighter (MIT). */
+const MG={
+ pecs:{n:"Pectoraux",map:["CH"]},delt_ant:{n:"Épaules avant",map:["DA"]},delt_lat:{n:"Épaules côté",map:["DA","DP"]},delt_post:{n:"Épaules arrière",map:["DP"]},
+ biceps:{n:"Biceps",map:["BI"]},triceps:{n:"Triceps",map:["TR"]},forearm:{n:"Avant-bras",map:["FO"]},
+ abs:{n:"Abdos",map:["AB"]},obliques:{n:"Obliques",map:["OB"]},traps:{n:"Trapèzes",map:["TP","NK"]},lats:{n:"Grand dorsal",map:["UB"]},lowback:{n:"Lombaires",map:["LB"]},
+ glutes:{n:"Fessiers",map:["GL","AD"]},quads:{n:"Quadriceps",map:["QU"]},hams:{n:"Ischio-jambiers",map:["HA"]},adductors:{n:"Adducteurs",map:["AX"]},calves:{n:"Mollets",map:["CA","SO"]}
+};
+const FIG={T:40,N:8,HR:7.6,UA:22,FA:20,TH:30,SH:28,FT:10};
+/* épaisseurs (rayons) des segments */
+const RAD={torsoH:8.6,torsoS:10,ua:[4.8,3.5],fa:[3.6,2.5],th:[7.4,4.8],sh:[4.6,2.9]};
+/* face : 1 = tourné vers la droite (ventre à droite debout), -1 = tourné vers la gauche (allongé sur le dos tête à droite) */
 const EXOS=[
- {id:"austro",k:/australienne|australian|inverted row|rowing inverse/,name:"Traction australienne",
+ {id:"austro",k:/australienne|australian|inverted row|rowing inverse/,name:"Traction australienne",face:-1,
+  m:{p:["lats","traps","delt_post"],s:["biceps","forearm","abs"]},
   cues:["Corps gainé, droit des talons aux épaules","Tire la poitrine vers la barre","Redescends bras tendus sans casser le bassin"],
-  st:`<line x1="128" y1="70" x2="172" y2="70" class="eq"/><line x1="166" y1="70" x2="166" y2="140" class="eq"/>`,
-  f:[{p:[108.5,121],t:77,H:[150,72],eb:1,A:[52,134],ft:0},{p:[100.6,102.4],t:57,H:[150,72],eb:1,A:[52,134],ft:0}]},
+  st:`<line x1="124" y1="62" x2="176" y2="62" class="eq bar"/><line x1="168" y1="62" x2="168" y2="140" class="eq"/>`,
+  f:[{p:[100,118],t:76,H:[150,63],eb:-1,A:[44,132],kb:1,ft:-10},{p:[103,102],t:58,H:[150,63],eb:-1,A:[54,138],kb:1,ft:-10}]},
  {id:"pushup",k:/pompe|push ?up/,name:"Pompes",
+  m:{p:["pecs"],s:["triceps","delt_ant","abs"]},
   cues:["Mains sous les épaules, corps bien gainé","Descends la poitrine près du sol, coudes à 45°","Pousse fort en gardant le bassin aligné"],
-  f:[{p:[100,111],t:70,H:[139,138],eb:1,A:[45,132],ft:0},{p:[100,123],t:82,H:[139,138],eb:1,A:[43,132],ft:0}]},
+  f:[{p:[98,110],t:72,H:[136,139],eb:1,A:[44,136],ft:0},{p:[98,124],t:84,H:[136,139],eb:1,A:[42,136],ft:0}]},
  {id:"dips",k:/\bdips?\b/,name:"Dips",
+  m:{p:["pecs","triceps"],s:["delt_ant"]},
   cues:["Épaules basses, buste légèrement penché","Descends jusqu'à avoir les coudes à 90°","Remonte bras tendus sans verrouiller fort"],
-  st:`<line x1="84" y1="84" x2="140" y2="84" class="eq"/><line x1="134" y1="84" x2="134" y2="140" class="eq"/>`,
-  f:[{p:[100,80],t:5,H:[103.5,82],eb:1,A:[80,116],kb:-1,ft:60},{p:[100,98],t:15,H:[103.5,82],eb:1,A:[80,134],kb:-1,ft:60}]},
- {id:"incline",k:/incline/,name:"Développé incliné",
-  cues:["Omoplates serrées contre le banc","Descends la barre vers le haut de la poitrine","Pousse à la verticale, pieds bien au sol"],
-  st:`<polyline points="44,114 76,114 116,88" class="eq bench"/><line x1="52" y1="114" x2="52" y2="140" class="eq"/><line x1="100" y1="99" x2="100" y2="140" class="eq"/>`,
-  att:"plate",
-  f:[{p:[74,108],t:65,H:[108,47],eb:-1,A:[42,138],kb:1,ft:-90},{p:[74,108],t:65,H:[105,90],eb:-1,A:[42,138],kb:1,ft:-90}]},
- {id:"bench",k:/couche|bench/,name:"Développé couché",
-  cues:["Omoplates serrées, pieds au sol","Descends la barre jusqu'au milieu de la poitrine","Pousse vers le plafond en expirant"],
-  st:`<line x1="52" y1="112" x2="128" y2="112" class="eq bench"/><line x1="60" y1="112" x2="60" y2="140" class="eq"/><line x1="120" y1="112" x2="120" y2="140" class="eq"/>`,
-  att:"plate",
-  f:[{p:[72,106],t:90,H:[112,64],eb:-1,A:[40,138],kb:1,ft:-90},{p:[72,106],t:90,H:[108,104],eb:-1,A:[40,138],kb:1,ft:-90}]},
- {id:"ohp",k:/militaire|overhead|shoulder press|developpe epaule|press epaule/,name:"Développé militaire",
-  cues:["Gainage serré, pas de cambrure","Haltères à hauteur d'épaules au départ","Pousse au-dessus de la tête, bras presque tendus"],
+  st:`<line x1="84" y1="82" x2="138" y2="82" class="eq bar"/><line x1="132" y1="82" x2="132" y2="140" class="eq"/>`,
+  f:[{p:[100,79],t:8,H:[105,81],eb:1,A:[84,114],kb:-1,ft:50},{p:[100,99],t:20,H:[105,81],eb:1,A:[84,132],kb:-1,ft:50}]},
+ {id:"ohp",k:/militaire|overhead press|shoulder press|developpe epaule|press epaule/,name:"Développé militaire",
+  m:{p:["delt_ant","delt_lat"],s:["triceps","traps"]},
+  cues:["Assis ou debout, gainage serré, pas de cambrure","Haltères à hauteur d'épaules au départ","Pousse au-dessus de la tête, bras presque tendus"],
+  st:`<line x1="62" y1="110" x2="104" y2="110" class="eq bench"/><line x1="68" y1="110" x2="66" y2="56" class="eq bench"/><line x1="84" y1="110" x2="84" y2="140" class="eq"/>`,
   att:"db",
-  f:[{p:[100,80],t:0,H:[110,37],eb:1,A:[100,138]},{p:[100,80],t:0,H:[102,-1],eb:1,A:[100,138]}]},
+  f:[{p:[82,106],t:-4,H:[96,58],eb:1,A:[114,134],kb:-1,ft:95},{p:[82,106],t:-4,H:[88,14],eb:1,A:[114,134],kb:-1,ft:95}]},
+ {id:"incline",k:/incline/,name:"Développé incliné",face:-1,
+  m:{p:["pecs","delt_ant"],s:["triceps"]},
+  cues:["Omoplates serrées contre le banc","Descends la barre vers le haut de la poitrine","Pousse à la verticale, pieds bien au sol"],
+  st:`<polyline points="44,112 76,112 118,82" class="eq bench"/><line x1="54" y1="112" x2="54" y2="140" class="eq"/><line x1="100" y1="96" x2="100" y2="140" class="eq"/>`,
+  att:"bar",
+  f:[{p:[74,105],t:58,H:[108,42],eb:-1,A:[40,138],kb:1,ft:-90},{p:[74,105],t:58,H:[104,82],eb:-1,A:[40,138],kb:1,ft:-90}]},
+ {id:"bench",k:/couche|bench/,name:"Développé couché",face:-1,
+  m:{p:["pecs"],s:["triceps","delt_ant"]},
+  cues:["Omoplates serrées, pieds au sol","Descends la barre jusqu'au milieu de la poitrine","Pousse vers le plafond en expirant"],
+  st:`<line x1="50" y1="112" x2="130" y2="112" class="eq bench"/><line x1="60" y1="112" x2="60" y2="140" class="eq"/><line x1="120" y1="112" x2="120" y2="140" class="eq"/>`,
+  att:"bar",
+  f:[{p:[72,103],t:90,H:[106,58],eb:-1,A:[38,138],kb:1,ft:-90},{p:[72,103],t:90,H:[103,96],eb:-1,A:[38,138],kb:1,ft:-90}]},
+ {id:"chestpress",k:/developpe pectoral|chest press|presse pectoral|developpe assis machine/,name:"Développé pectoral (machine)",
+  m:{p:["pecs"],s:["triceps","delt_ant"]},
+  cues:["Dos collé au dossier, poignées à hauteur de poitrine","Pousse devant toi sans décoller les épaules","Reviens lentement jusqu'à sentir l'étirement des pecs"],
+  st:`<line x1="62" y1="110" x2="104" y2="110" class="eq bench"/><line x1="68" y1="110" x2="66" y2="56" class="eq bench"/><line x1="84" y1="110" x2="84" y2="140" class="eq"/><line x1="162" y1="30" x2="162" y2="140" class="eq"/>`,
+  att:"handle",
+  f:[{p:[82,106],t:-6,H:[100,74],eb:1,A:[114,134],kb:-1,ft:95},{p:[82,106],t:-6,H:[132,70],eb:1,A:[114,134],kb:-1,ft:95}]},
  {id:"lateral",k:/elevation.*lat|lateral raise/,name:"Élévations latérales",front:true,
+  m:{p:["delt_lat"],s:["traps","delt_ant"]},
   cues:["Coudes légèrement fléchis","Monte les bras sur les côtés jusqu'aux épaules","Redescends lentement, sans élan"],
   att:"db",
-  f:[{p:[100,80],H:[117,82],A:[106,138]},{p:[100,80],H:[152,40],A:[106,138]}]},
- {id:"revfly",k:/pec ?deck invers|oiseau|face ?pull|reverse fly|deltoide post/,name:"Oiseau / pec deck inversé",front:true,
+  f:[{p:[100,80],H:[116,84],A:[107,138]},{p:[100,80],H:[150,42],A:[107,138]}]},
+ {id:"revfly",k:/pec ?deck invers|oiseau|face ?pull|reverse fly|deltoide post/,name:"Oiseau / pec deck inversé",front:true,back:true,
+  m:{p:["delt_post"],s:["traps","lats"]},
   cues:["Bras devant toi à hauteur d'épaules","Ouvre les bras vers l'arrière en serrant les omoplates","Reviens lentement"],
-  f:[{p:[100,80],H:[113,50],A:[106,138]},{p:[100,80],H:[152,44],A:[106,138]}]},
- {id:"triceps",k:/triceps|corde/,name:"Extension triceps à la poulie",
+  f:[{p:[100,80],H:[112,46],A:[107,138]},{p:[100,80],H:[150,44],A:[107,138]}]},
+ {id:"tri_oh",k:/triceps.*(arriere|nuque|overhead|au dessus|derriere la tete)|extension.*(nuque|au dessus)/,name:"Extension triceps au-dessus de la tête",
+  m:{p:["triceps"],s:["delt_post"]},
+  cues:["Dos à la poulie, coudes près de la tête et pointés vers l'avant","Tends les bras vers l'avant et le haut","Reviens en pliant seulement les coudes"],
+  st:`<line x1="44" y1="-12" x2="44" y2="140" class="eq"/><circle cx="48" cy="20" r="3" class="eq"/>`,
+  att:"cable",pulley:[48,20],
+  f:[{p:[100,82],t:14,Hs:[-5,-6],eb:-1,A:[122,138],A2:[86,138],kb:-1,kb2:-1},{p:[100,82],t:14,Hs:[24,-36],eb:-1,A:[122,138],A2:[86,138],kb:-1,kb2:-1}]},
+ {id:"triceps",k:/triceps|corde|pushdown/,name:"Extension triceps à la poulie",
+  m:{p:["triceps"],s:["forearm"]},
   cues:["Coudes collés au corps et immobiles","Pousse vers le bas jusqu'à bras tendus","Écarte la corde en bas, remonte doucement"],
-  st:`<line x1="156" y1="-12" x2="156" y2="140" class="eq"/><circle cx="152" cy="-8" r="3" class="eq"/>`,
-  att:"cable",pulley:[152,-8],
-  f:[{p:[96,80],t:12,H:[113,45],eb:1,A:[100,138]},{p:[96,80],t:12,H:[110,84],eb:1,A:[100,138]}]},
+  st:`<line x1="148" y1="-12" x2="148" y2="140" class="eq"/><circle cx="144" cy="-6" r="3" class="eq"/>`,
+  att:"cable",pulley:[144,-6],
+  f:[{p:[98,82],t:10,H:[116,46],eb:1,A:[104,138]},{p:[98,82],t:10,H:[112,86],eb:1,A:[104,138]}]},
  {id:"latpull",k:/tirage vertical|lat ?pull|pull ?down|tirage poitrine|tirage nuque/,name:"Tirage vertical",
+  m:{p:["lats"],s:["biceps","delt_post","traps","forearm"]},
   cues:["Buste légèrement penché en arrière","Tire la barre vers le haut de la poitrine","Serre les omoplates, remonte bras tendus"],
-  st:`<line x1="74" y1="104" x2="112" y2="104" class="eq bench"/><line x1="92" y1="104" x2="92" y2="140" class="eq"/><line x1="122" y1="96" x2="138" y2="96" class="eq"/>`,
-  att:"cable",pulley:[100,-12],
-  f:[{p:[92,100],t:-10,H:[98,16],eb:1,A:[132,138],kb:-1},{p:[92,100],t:-14,H:[95,56],eb:1,A:[132,138],kb:-1}]},
- {id:"rowcable",k:/tirage horizontal|seated row|tirage assis|row(ing)? assis|tirage poulie basse/,name:"Tirage horizontal",
+  st:`<line x1="62" y1="110" x2="104" y2="110" class="eq bench"/><line x1="84" y1="110" x2="84" y2="140" class="eq"/><line x1="108" y1="98" x2="124" y2="98" class="eq bench"/><line x1="70" y1="-12" x2="130" y2="-12" class="eq"/>`,
+  att:"pullbar",pulley:[100,-12],
+  f:[{p:[84,106],t:-8,H:[94,20],eb:1,A:[114,134],kb:-1,ft:95},{p:[84,106],t:-16,H:[97,60],eb:1,A:[114,134],kb:-1,ft:95}]},
+ {id:"rowcable",k:/tirage horizontal|seated row|low row|tirage assis|row(ing)? assis|tirage poulie basse/,name:"Tirage horizontal",
+  m:{p:["lats","traps"],s:["biceps","delt_post","forearm"]},
   cues:["Dos droit, poitrine sortie","Tire la poignée vers le nombril","Serre les omoplates puis relâche lentement"],
-  st:`<line x1="58" y1="116" x2="104" y2="116" class="eq bench"/><line x1="80" y1="116" x2="80" y2="140" class="eq"/><line x1="140" y1="108" x2="140" y2="130" class="eq"/>`,
-  att:"cable",pulley:[168,116],
-  f:[{p:[80,112],t:18,H:[134,82],eb:1,A:[136,122],kb:-1,ft:-10},{p:[80,112],t:-4,H:[94,90],eb:1,A:[136,122],kb:-1,ft:-10}]},
- {id:"rowbent",k:/rowing|row\b|tirage buste penche/,name:"Rowing buste penché",
+  st:`<line x1="56" y1="116" x2="102" y2="116" class="eq bench"/><line x1="78" y1="116" x2="78" y2="140" class="eq"/><line x1="138" y1="104" x2="142" y2="132" class="eq bench"/><line x1="172" y1="70" x2="172" y2="140" class="eq"/>`,
+  att:"cable",pulley:[170,108],
+  f:[{p:[78,112],t:20,H:[134,96],eb:1,A:[134,120],kb:-1,ft:-10},{p:[78,112],t:-4,H:[96,94],eb:1,A:[134,120],kb:-1,ft:-10}]},
+ {id:"rackpull",k:/pull rack|rack pull|souleve partiel/,name:"Rack pull",
+  m:{p:["lowback","glutes","traps"],s:["hams","forearm","quads"]},
+  cues:["Barre posée sur le rack, juste sous les genoux","Dos plat, pousse avec les jambes et les hanches","Finis debout, épaules en arrière, sans te cambrer"],
+  st:`<rect x="118" y="106" width="8" height="34" rx="2" class="eq fill"/>`,
+  att:"bar",
+  f:[{p:[88,90],t:52,Hs:[0,0],arm:"hang",eb:-1,A:[104,138],kb:-1},{p:[100,80],t:0,arm:"hang",eb:-1,A:[100,138],kb:-1}]},
+ {id:"rowbent",k:/rowing|\brow\b|tirage buste penche/,name:"Rowing buste penché",
+  m:{p:["lats","traps"],s:["delt_post","biceps","lowback","hams"]},
   cues:["Buste penché, dos plat, genoux un peu fléchis","Tire la charge vers le bas du ventre","Coudes près du corps, redescends contrôlé"],
-  att:"plate",
-  f:[{p:[90,80],t:72,H:[130,120],eb:1,A:[96,138],kb:-1},{p:[90,80],t:72,H:[118,92],eb:1,A:[96,138],kb:-1}]},
- {id:"pullup",k:/traction|pull ?up|chin/,name:"Tractions",
+  att:"db",
+  f:[{p:[90,84],t:70,H:[124,124],eb:1,A:[100,138],kb:-1},{p:[90,84],t:70,H:[112,96],eb:1,A:[100,138],kb:-1}]},
+ {id:"chinup",k:/chin/,name:"Chin-up (supination)",
+  m:{p:["lats","biceps"],s:["forearm","traps"]},
+  cues:["Paumes vers toi, mains largeur d'épaules","Tire jusqu'au menton au-dessus de la barre","Redescends complètement, sans balancer"],
+  st:`<line x1="70" y1="-6" x2="140" y2="-6" class="eq bar"/>`,
+  f:[{p:[100,84],t:2,H:[106,-4],eb:1,A:[92,136],kb:-1,ft:70},{p:[100,58],t:-6,H:[106,-4],eb:1,A:[90,110],kb:-1,ft:70}]},
+ {id:"pullup",k:/traction|pull ?up/,name:"Tractions",
+  m:{p:["lats"],s:["biceps","forearm","traps","delt_post"]},
   cues:["Pars bras tendus, épaules engagées","Tire jusqu'au menton au-dessus de la barre","Redescends complètement, sans balancer"],
-  st:`<line x1="70" y1="-2" x2="140" y2="-2" class="eq"/>`,
-  f:[{p:[100,82],t:0,H:[104,0],eb:1,A:[90,134],kb:-1},{p:[100,58],t:-4,H:[104,0],eb:1,A:[90,110],kb:-1}]},
+  st:`<line x1="70" y1="-6" x2="140" y2="-6" class="eq bar"/>`,
+  f:[{p:[100,84],t:2,H:[106,-4],eb:1,A:[92,136],kb:-1,ft:70},{p:[100,58],t:-6,H:[106,-4],eb:1,A:[90,110],kb:-1,ft:70}]},
+ {id:"legext",k:/leg ?extension|extension (des )?jambes|extension quadri/,name:"Leg extension",
+  m:{p:["quads"],s:[]},
+  cues:["Dos calé, genoux au bord du siège","Tends les jambes jusqu'en haut","Redescends lentement sans laisser tomber"],
+  st:`<line x1="62" y1="110" x2="104" y2="110" class="eq bench"/><line x1="68" y1="110" x2="66" y2="56" class="eq bench"/><line x1="84" y1="110" x2="84" y2="140" class="eq"/>`,
+  att:"pad",
+  f:[{p:[82,106],t:-6,H:[96,108],eb:-1,A:[110,134],kb:-1,ft:80},{p:[82,106],t:-6,H:[96,108],eb:-1,A:[139,100],kb:-1,ft:5}]},
  {id:"legcurl",k:/leg ?curl|ischio/,name:"Leg curl",
+  m:{p:["hams"],s:["calves"]},
   cues:["Bassin bien plaqué contre le banc","Ramène les talons vers les fesses","Redescends lentement sans laisser tomber"],
   st:`<line x1="40" y1="106" x2="146" y2="106" class="eq bench"/><line x1="56" y1="106" x2="56" y2="140" class="eq"/><line x1="130" y1="106" x2="130" y2="140" class="eq"/>`,
   att:"pad",
-  f:[{p:[92,100],t:90,H:[146,110],eb:1,A:[35,101],kb:-1,ft:-90},{p:[92,100],t:90,H:[146,110],eb:1,A:[62,74],kb:-1,ft:-150}]},
+  f:[{p:[92,99],t:90,H:[140,112],eb:1,A:[35,99],kb:-1,ft:-90},{p:[92,99],t:90,H:[140,112],eb:1,A:[66,72],kb:-1,ft:-150}]},
+ {id:"hammer",k:/marteau|hammer/,name:"Curl marteau",
+  m:{p:["biceps","forearm"],s:[]},
+  cues:["Pouces vers le haut, coude fixe","Monte la charge sans balancer le buste","Redescends jusqu'à bras presque tendu"],
+  att:"dbv",
+  f:[{p:[100,80],t:0,H:[104,83],eb:1,A:[100,138]},{p:[100,80],t:0,H:[110,46],eb:1,A:[100,138]}]},
  {id:"curl",k:/curl/,name:"Curl biceps",
+  m:{p:["biceps"],s:["forearm"]},
   cues:["Coude fixe contre le corps","Monte la charge en contrôlant, sans balancer","Redescends jusqu'à bras presque tendu"],
   att:"db",
-  f:[{p:[100,80],t:0,H:[104,82],eb:1,A:[100,138]},{p:[100,80],t:0,H:[114,49],eb:1,A:[100,138]}]},
+  f:[{p:[100,80],t:0,H:[104,83],eb:1,A:[100,138]},{p:[100,80],t:0,H:[110,46],eb:1,A:[100,138]}]},
  {id:"legpress",k:/presse/,name:"Presse à cuisses",
+  m:{p:["quads","glutes"],s:["adductors","hams"]},
   cues:["Dos et bassin collés au dossier","Descends jusqu'à genoux à 90°","Pousse avec les talons sans verrouiller les genoux"],
-  st:`<polyline points="22,92 58,128 88,128" class="eq bench"/><line x1="70" y1="128" x2="70" y2="140" class="eq"/>`,
+  st:`<polyline points="22,90 58,126 88,126" class="eq bench"/><line x1="70" y1="126" x2="70" y2="140" class="eq"/>`,
   att:"platform",
-  f:[{p:[70,122],t:-55,H:[72,124],eb:1,A:[104,90],kb:-1,ft:150},{p:[70,122],t:-55,H:[72,124],eb:1,A:[118,78],kb:-1,ft:150}]},
+  f:[{p:[70,120],t:-55,H:[74,122],eb:1,A:[102,92],kb:-1,ft:150},{p:[70,120],t:-55,H:[74,122],eb:1,A:[120,76],kb:-1,ft:150}]},
  {id:"lunge",k:/fente|lunge|bulgare/,name:"Fentes",
+  m:{p:["quads","glutes"],s:["adductors","hams","calves"]},
   cues:["Grand pas en avant, buste droit","Descends jusqu'à ce que le genou arrière frôle le sol","Pousse sur le talon avant pour remonter"],
   att:"db",
-  f:[{p:[100,80],t:0,H:[101,122],eb:-1,A:[112,138],A2:[86,138],kb:-1,kb2:-1},{p:[100,104],t:0,H:[101,146],eb:-1,A:[124,138],A2:[64,136],kb:-1,kb2:-1,ft2:60}]},
+  f:[{p:[100,80],t:0,arm:"hang",eb:-1,A:[114,138],A2:[86,138],kb:-1,kb2:-1},{p:[98,104],t:0,arm:"hang",eb:-1,A:[124,138],A2:[66,136],kb:-1,kb2:-1,ft2:60}]},
  {id:"hipthrust",k:/hip ?thrust|pont fessier|glute bridge/,name:"Hip thrust",
+  m:{p:["glutes"],s:["hams","quads"]},
   cues:["Haut du dos posé sur le banc","Pousse le bassin vers le haut en serrant les fessiers","Menton rentré, redescends contrôlé"],
-  st:`<line x1="24" y1="106" x2="62" y2="106" class="eq bench"/><line x1="34" y1="106" x2="34" y2="140" class="eq"/>`,
+  st:`<line x1="22" y1="104" x2="60" y2="104" class="eq bench"/><line x1="34" y1="104" x2="34" y2="140" class="eq"/>`,
   att:"plateHip",
-  f:[{p:[92,126],t:-74,H:[94,118],eb:1,A:[128,138],kb:-1},{p:[96,100],t:-92,H:[98,94],eb:1,A:[128,138],kb:-1}]},
- {id:"calf",k:/mollet|calf/,name:"Mollets",
+  f:[{p:[90,126],t:-72,H:[92,118],eb:1,A:[126,138],kb:-1},{p:[94,98],t:-92,H:[96,92],eb:1,A:[126,138],kb:-1}]},
+ {id:"calf",k:/mollet|calf/,name:"Mollets debout",
+  m:{p:["calves"],s:[]},
   cues:["Pointe des pieds sur une marche","Monte le plus haut possible","Descends lentement talons sous la marche"],
-  st:`<rect x="104" y="140" width="26" height="8" class="eq"/>`,
-  f:[{p:[100,82],t:0,H:[101,124],eb:-1,A:[100,140],ft:90},{p:[100,72],t:0,H:[101,114],eb:-1,A:[100,130],ft:30}]},
+  st:`<rect x="104" y="132" width="30" height="8" rx="2" class="eq fill"/>`,
+  f:[{p:[100,77],t:0,arm:"hang",eb:-1,A:[100,135],ft:110},{p:[100,66],t:0,arm:"hang",eb:-1,A:[100,124],ft:40}]},
  {id:"rdl",k:/souleve|deadlift|rdl|good morning/,name:"Soulevé de terre (roumain)",
+  m:{p:["hams","glutes"],s:["lowback","adductors","forearm"]},
   cues:["Dos plat, barre contre les cuisses","Recule les fesses en penchant le buste","Remonte en poussant les hanches vers l'avant"],
-  att:"plate",
-  f:[{p:[100,80],t:0,H:[103,121],eb:-1,A:[100,138],kb:-1},{p:[86,84],t:78,H:[124,126],eb:-1,A:[100,138],kb:-1}]},
+  att:"bar",
+  f:[{p:[100,80],t:0,arm:"hang",eb:-1,A:[102,138],kb:-1},{p:[88,84],t:76,arm:"hang",eb:-1,A:[102,138],kb:-1}]},
  {id:"squat",k:/squat/,name:"Squat",
+  m:{p:["quads","glutes"],s:["adductors","lowback","hams"]},
   cues:["Pieds largeur d'épaules, dos droit","Descends en poussant les fesses en arrière","Genoux dans l'axe des pieds, remonte par les talons"],
-  att:"plateBack",
-  f:[{p:[100,80],t:4,Hs:[-4,-10],eb:1,A:[100,138],kb:-1},{p:[80,112],t:40,Hs:[-4,-10],eb:1,A:[100,138],kb:-1}]},
+  att:"barBack",
+  f:[{p:[100,80],t:4,Hs:[-6,-3],eb:-1,A:[102,138],kb:-1},{p:[80,112],t:40,Hs:[-6,-3],eb:-1,A:[102,138],kb:-1}]},
+ {id:"crunch",k:/crunch|abdo|releve de jambes|sit ?up/,name:"Crunch",
+  m:{p:["abs"],s:["obliques"]},
+  cues:["Allongé, genoux pliés, bas du dos au sol","Enroule le haut du dos en soufflant","Redescends doucement sans tirer sur la nuque"],
+  f:[{p:[84,134],t:-90,H:[92,124],eb:1,A:[122,138],kb:-1},{p:[84,134],t:-60,H:[110,112],eb:1,A:[122,138],kb:-1}]},
  {id:"plank",k:/gainage|planche|plank/,name:"Gainage",
+  m:{p:["abs"],s:["obliques","delt_ant","glutes"]},
   cues:["Avant-bras sous les épaules","Corps aligné, fessiers et abdos serrés","Respire calmement, tiens la position"],
-  f:[{p:[100,115],t:75,H:[160,138],eb:1,A:[44,132],ft:0},{p:[100,113],t:75,H:[160,138],eb:1,A:[44,132],ft:0}]},
+  f:[{p:[100,124],t:76,H:[160,138],eb:1,A:[44,136],ft:0},{p:[100,122],t:76,H:[160,138],eb:1,A:[44,136],ft:0}]},
  {id:"backext",k:/lombaire|hyperextension|extension du dos|back extension/,name:"Extension lombaire",
+  m:{p:["lowback"],s:["glutes","hams"]},
   cues:["Bassin calé contre le coussin","Descends le buste dos plat","Remonte jusqu'à l'alignement, sans hyper-cambrer"],
-  st:`<line x1="96" y1="100" x2="110" y2="88" class="eq bench"/><line x1="58" y1="134" x2="70" y2="124" class="eq"/><line x1="100" y1="100" x2="100" y2="140" class="eq"/>`,
-  f:[{p:[100,92],t:150,Hs:[-14,4],eb:1,A:[62,128],kb:1,ft:-60},{p:[100,92],t:55,Hs:[-14,4],eb:1,A:[62,128],kb:1,ft:-60}]}
+  st:`<line x1="96" y1="102" x2="110" y2="88" class="eq bench"/><line x1="56" y1="134" x2="70" y2="124" class="eq bench"/><line x1="100" y1="100" x2="100" y2="140" class="eq"/>`,
+  f:[{p:[100,92],t:150,Hs:[-6,-12],eb:-1,A:[62,128],kb:1,ft:-60},{p:[100,92],t:47,Hs:[-6,-12],eb:-1,A:[62,128],kb:1,ft:-60}]}
 ];
+/* repli : muscles devinés d'après le nom quand l'exercice n'a pas de schéma */
+const MFALL=[[/pec|ecarte|butterfly|chest/,{p:["pecs"],s:["delt_ant"]}],[/epaule|arnold|deltoide/,{p:["delt_ant","delt_lat"],s:["triceps"]}],
+ [/shrug|trap/,{p:["traps"],s:[]}],[/dos|lat|tirage/,{p:["lats"],s:["biceps"]}],[/biceps/,{p:["biceps"],s:["forearm"]}],[/triceps|barre au front|kickback/,{p:["triceps"],s:[]}],
+ [/avant bras|poignet|grip/,{p:["forearm"],s:[]}],[/oblique|rotation|russian/,{p:["obliques"],s:["abs"]}],[/fessier|glute|abduct/,{p:["glutes"],s:[]}],
+ [/adduct/,{p:["adductors"],s:[]}],[/quadri|cuisse/,{p:["quads"],s:[]}],[/ischio|hamstring/,{p:["hams"],s:[]}],[/jambe/,{p:["quads"],s:["glutes"]}]];
 function exoFor(name){const n=" "+key(name)+" ";return EXOS.find(x=>x.k.test(n))||null}
+function musclesFor(name){const x=exoFor(name);if(x)return x.m;const n=" "+key(name)+" ";for(const [re,m] of MFALL)if(re.test(n))return m;return {p:[],s:[]}}
 const lerp=(a,b,u)=>a+(b-a)*u;
 function lerpPose(a,b,u){const o={};for(const k in a){const va=a[k],vb=b[k]??va;o[k]=Array.isArray(va)?va.map((v,i)=>lerp(v,vb[i],u)):typeof va==="number"?lerp(va,vb,u):va}return o}
 function ik(s,t,L1,L2,bend){
@@ -919,56 +1027,165 @@ function ik(s,t,L1,L2,bend){
   const bx=s[0]+a*dx/d,by=s[1]+a*dy/d,px=-dy/d,py=dx/d;
   return {m:[bx+bend*h*px,by+bend*h*py],e:[s[0]+dx,s[1]+dy]};
 }
-const rad=d=>d*Math.PI/180;
+const rad=d=>d*Math.PI/180,f1=v=>v.toFixed(1);
+/* segment en volume : capsule effilée de A (rayon ra) à B (rayon rb) */
+function seg(A,B,ra,rb,cls){
+  const dx=B[0]-A[0],dy=B[1]-A[1],l=Math.hypot(dx,dy)||.001,nx=-dy/l,ny=dx/l;
+  const p=(P,r,s)=>f1(P[0]+s*nx*r)+" "+f1(P[1]+s*ny*r);
+  return `<path class="${cls}" d="M${p(A,ra,1)}L${p(B,rb,1)}A${f1(rb)} ${f1(rb)} 0 0 0 ${p(B,rb,-1)}L${p(A,ra,-1)}A${f1(ra)} ${f1(ra)} 0 0 0 ${p(A,ra,1)}Z"/>`;
+}
+/* muscle sur un segment : ventre musculaire entre u0 et u1, du côté s (+1/-1 selon la normale), 0 = centré */
+function belly(A,B,ra,rb,u0,u1,s,cls,w){
+  const dx=B[0]-A[0],dy=B[1]-A[1],l=Math.hypot(dx,dy)||.001,nx=-dy/l,ny=dx/l;
+  const P=(u,v)=>{const r=lerp(ra,rb,u);return f1(A[0]+dx*u+nx*v*r)+" "+f1(A[1]+dy*u+ny*v*r)};
+  const um=(u0+u1)/2,k=(u1-u0)*.18;w=w??1;
+  if(!s)return `<path class="${cls}" d="M${P(u0,0)}C${P(u0+k,.95*w)} ${P(um-k,1.05*w)} ${P(um,1.02*w)}C${P(um+k,1.05*w)} ${P(u1-k,.95*w)} ${P(u1,0)}C${P(u1-k,-.95*w)} ${P(um+k,-1.05*w)} ${P(um,-1.02*w)}C${P(um-k,-1.05*w)} ${P(u0+k,-.95*w)} ${P(u0,0)}Z"/>`;
+  return `<path class="${cls}" d="M${P(u0,s*.12)}C${P(u0+k,s*1.0*w)} ${P(um-k,s*1.12*w)} ${P(um,s*1.08*w)}C${P(um+k,s*1.12*w)} ${P(u1-k,s*1.0*w)} ${P(u1,s*.12)}Z"/>`;
+}
+function mcls(x,g){return x.m.p.includes(g)?"mu m1":x.m.s.includes(g)?"mu m2":null}
 function figSVG(x,u){
-  const P=lerpPose(x.f[0],x.f[1],u);let g="";const L=(a,b,c)=>`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" class="${c||"bd"}"/>`;
-  const C=(p,r,c)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${r}" class="${c||"bd"}"/>`;
-  const hip=P.p;let sh,head,hands=[],feet=[];
+  const P=lerpPose(x.f[0],x.f[1],u);const F=x.face||1;let back="",mid="",front="",eqb="",eqf="";
+  const has=g=>mcls(x,g);
+  const C=(p,r,c)=>`<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="${r}" class="${c}"/>`;
+  const Ln=(a,b,c)=>`<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" class="${c}"/>`;
+  const hip=P.p;
   if(x.front){
-    sh=[hip[0],hip[1]-FIG.T];head=[sh[0],sh[1]-FIG.N];
+    const sh=[hip[0],hip[1]-FIG.T],neck=[sh[0],sh[1]-3],head=[sh[0],sh[1]-FIG.N-FIG.HR+3];
+    let limbs="",mus="";const hands=[];
     for(const sgn of [1,-1]){
-      const S=[hip[0]+sgn*11,sh[1]],Ht=[hip[0]+sgn*(P.H[0]-hip[0]),P.H[1]];const a=ik(S,Ht,FIG.UA,FIG.FA,sgn);
-      g+=L(S,a.m)+L(a.m,a.e);hands.push(a.e);
-      const Hp=[hip[0]+sgn*7,hip[1]],At=[hip[0]+sgn*(P.A[0]-hip[0]),P.A[1]];const l=ik(Hp,At,FIG.TH,FIG.SH,-sgn);
-      g+=L(Hp,l.m)+L(l.m,l.e)+L(l.e,[l.e[0]+sgn*6,l.e[1]+2]);
+      const S=[hip[0]+sgn*12,sh[1]+3],Ht=[hip[0]+sgn*(P.H[0]-hip[0]),P.H[1]];const a=ik(S,Ht,FIG.UA,FIG.FA,sgn);hands.push(a.e);
+      const Hp=[hip[0]+sgn*6,hip[1]],At=[hip[0]+sgn*(P.A[0]-hip[0]),P.A[1]];const l=ik(Hp,At,FIG.TH,FIG.SH,-sgn);
+      limbs+=seg(Hp,l.m,RAD.th[0],RAD.th[1],"bd")+seg(l.m,l.e,RAD.sh[0],RAD.sh[1],"bd")+seg(l.e,[l.e[0]+sgn*7,l.e[1]+1],2.6,2.2,"bd");
+      limbs+=seg(S,a.m,RAD.ua[0],RAD.ua[1],"bd")+seg(a.m,a.e,RAD.fa[0],RAD.fa[1],"bd")+C(a.e,2.8,"bd");
+      let c;
+      if(c=has("quads"))mus+=belly(Hp,l.m,RAD.th[0],RAD.th[1],.12,.9,0,c,.8);
+      if(c=has("adductors"))mus+=belly(Hp,l.m,RAD.th[0],RAD.th[1],.05,.55,-sgn,c);
+      if(c=has("calves"))mus+=belly(l.m,l.e,RAD.sh[0],RAD.sh[1],.08,.6,0,c,.8);
+      if(c=has("biceps")||has("triceps"))mus+=belly(S,a.m,RAD.ua[0],RAD.ua[1],.3,.92,0,c,.8);
+      if(c=has("forearm"))mus+=belly(a.m,a.e,RAD.fa[0],RAD.fa[1],.05,.6,0,c,.8);
+      const dl=has("delt_lat")||has("delt_post")||has("delt_ant");
+      if(dl){const v=[a.m[0]-S[0],a.m[1]-S[1]],L=Math.hypot(...v);mus+=`<ellipse cx="${f1(S[0]+v[0]/L*3)}" cy="${f1(S[1]+v[1]/L*3)}" rx="6.4" ry="5.6" class="${dl}"/>`}
     }
-    g+=L([hip[0]-11,sh[1]],[hip[0]+11,sh[1]])+L(sh,hip)+L([hip[0]-7,hip[1]],[hip[0]+7,hip[1]]);
-  }else{
-    const ux=Math.sin(rad(P.t)),uy=-Math.cos(rad(P.t));
-    sh=[hip[0]+FIG.T*ux,hip[1]+FIG.T*uy];head=[sh[0]+FIG.N*ux,sh[1]+FIG.N*uy];
-    const leg=(At,kb,ft,cls)=>{const l=ik(hip,At,FIG.TH,FIG.SH,kb);const fa=rad(ft??90);
-      return L(hip,l.m,cls)+L(l.m,l.e,cls)+L(l.e,[l.e[0]+FIG.FT*Math.sin(fa),l.e[1]+FIG.FT*Math.cos(fa)],cls)+"|"+l.e.join(",")};
-    if(P.A2){const s2=leg(P.A2,P.kb2??P.kb??1,P.ft2,"bd far").split("|");g+=s2[0];feet.push(s2[1].split(",").map(Number))}
-    const Ht=P.Hs?[sh[0]+P.Hs[0]*ux-P.Hs[1]*uy,sh[1]+P.Hs[0]*uy+P.Hs[1]*ux]:P.H;
-    const arm=ik(sh,Ht,FIG.UA,FIG.FA,P.eb??1);hands.push(arm.e);
-    const s1=leg(P.A,P.kb??1,P.ft,"bd").split("|");feet.push(s1[1].split(",").map(Number));
-    g+=L(hip,sh)+s1[0]+L(sh,arm.m)+L(arm.m,arm.e);
-    // équipement attaché
-    const a=x.att,h=arm.e;
-    if(a==="plate")g+=C(h,10,"eq plate");
-    if(a==="db")g+=`<rect x="${(h[0]-6).toFixed(1)}" y="${(h[1]-3).toFixed(1)}" width="12" height="6" rx="2" class="eq fill"/>`;
-    if(a==="cable")g+=L(x.pulley,h,"eq thin")+C(h,2.5,"eq fill");
-    if(a==="pad"){const ft=feet[0];g+=C(ft,4,"eq fill")}
-    if(a==="platform"){const ft=feet[0];g+=L([ft[0]-12,ft[1]-14],[ft[0]+12,ft[1]+14],"eq")}
-    if(a==="plateHip")g+=C([hip[0]+2,hip[1]-8],9,"eq plate");
-    if(a==="plateBack")g+=C([sh[0]-3,sh[1]+1],10,"eq plate");
+    // tronc vu de face/dos : épaules larges, taille plus fine
+    const T=`M${f1(hip[0]-9)} ${f1(hip[1]+2)}C${f1(hip[0]-10)} ${f1(hip[1]-14)} ${f1(hip[0]-15)} ${f1(sh[1]+12)} ${f1(hip[0]-15)} ${f1(sh[1]+3)}Q${f1(hip[0]-15)} ${f1(sh[1]-3)} ${f1(hip[0]-6)} ${f1(sh[1]-3)}L${f1(hip[0]+6)} ${f1(sh[1]-3)}Q${f1(hip[0]+15)} ${f1(sh[1]-3)} ${f1(hip[0]+15)} ${f1(sh[1]+3)}C${f1(hip[0]+15)} ${f1(sh[1]+12)} ${f1(hip[0]+10)} ${f1(hip[1]-14)} ${f1(hip[0]+9)} ${f1(hip[1]+2)}Z`;
+    let tm="",c;
+    if(x.back){
+      if(c=has("lats"))tm+=`<path class="${c}" d="M${f1(hip[0]-13)} ${f1(sh[1]+8)}Q${f1(hip[0]-10)} ${f1(hip[1]-12)} ${f1(hip[0]-2)} ${f1(hip[1]-10)}L${f1(hip[0]-2)} ${f1(sh[1]+12)}ZM${f1(hip[0]+13)} ${f1(sh[1]+8)}Q${f1(hip[0]+10)} ${f1(hip[1]-12)} ${f1(hip[0]+2)} ${f1(hip[1]-10)}L${f1(hip[0]+2)} ${f1(sh[1]+12)}Z"/>`;
+      if(c=has("traps"))tm+=`<path class="${c}" d="M${f1(hip[0]-12)} ${f1(sh[1])}L${f1(hip[0])} ${f1(sh[1]-6)}L${f1(hip[0]+12)} ${f1(sh[1])}L${f1(hip[0])} ${f1(sh[1]+16)}Z"/>`;
+    }else{
+      if(c=has("traps"))tm+=`<path class="${c}" d="M${f1(hip[0]-12)} ${f1(sh[1]+1)}Q${f1(hip[0]-5)} ${f1(sh[1]-2)} ${f1(hip[0]-3)} ${f1(sh[1]-7)}L${f1(hip[0]-3)} ${f1(sh[1]+1)}ZM${f1(hip[0]+12)} ${f1(sh[1]+1)}Q${f1(hip[0]+5)} ${f1(sh[1]-2)} ${f1(hip[0]+3)} ${f1(sh[1]-7)}L${f1(hip[0]+3)} ${f1(sh[1]+1)}Z"/>`;
+      if(c=has("pecs"))tm+=`<path class="${c}" d="M${f1(hip[0]-1)} ${f1(sh[1]+3)}Q${f1(hip[0]-12)} ${f1(sh[1]+1)} ${f1(hip[0]-13)} ${f1(sh[1]+6)}Q${f1(hip[0]-10)} ${f1(sh[1]+14)} ${f1(hip[0]-1)} ${f1(sh[1]+13)}ZM${f1(hip[0]+1)} ${f1(sh[1]+3)}Q${f1(hip[0]+12)} ${f1(sh[1]+1)} ${f1(hip[0]+13)} ${f1(sh[1]+6)}Q${f1(hip[0]+10)} ${f1(sh[1]+14)} ${f1(hip[0]+1)} ${f1(sh[1]+13)}Z"/>`;
+      if(c=has("abs"))tm+=`<rect x="${f1(hip[0]-5)}" y="${f1(sh[1]+16)}" width="10" height="20" rx="4" class="${c}"/>`;
+    }
+    let eq="";if(x.att==="db")for(const h of hands)eq+=`<rect x="${f1(h[0]-2.5)}" y="${f1(h[1]-7)}" width="5" height="14" rx="1.5" class="eq fill"/>`;
+    return `<line x1="-60" y1="140" x2="260" y2="140" class="gr"/>${x.st||""}${limbs}<path class="bd" d="${T}"/>${seg(neck,[head[0],head[1]+4],3.4,3.4,"bd")}${C(head,FIG.HR,"bd hd")}${tm}${mus}${eq}`;
   }
-  if(x.front&&x.att==="db")for(const h of hands)g+=`<rect x="${(h[0]-3).toFixed(1)}" y="${(h[1]-6).toFixed(1)}" width="6" height="12" rx="2" class="eq fill"/>`;
-  g+=C(head,FIG.HR,"bd hd");
-  return `<line x1="0" y1="140" x2="200" y2="140" class="gr"/>${x.st||""}${g}`;
+  /* ---- profil ---- */
+  const ux=Math.sin(rad(P.t)),uy=-Math.cos(rad(P.t));
+  const sh=[hip[0]+FIG.T*ux,hip[1]+FIG.T*uy],head=[sh[0]+(FIG.N+FIG.HR-1)*ux,sh[1]+(FIG.N+FIG.HR-1)*uy];
+  // normale « ventre » du tronc
+  const ant=[-uy*F,ux*F];// tourné vers la droite debout : ant=(1,0)
+  const leg=(At,kb,ft,far)=>{const H0=far?[hip[0]-ant[0]*1.5,hip[1]-ant[1]*1.5]:hip;const l=ik(H0,At,FIG.TH,FIG.SH,kb);const fa=rad(ft??90);
+    const toe=[l.e[0]+FIG.FT*Math.sin(fa)*F,l.e[1]+FIG.FT*Math.cos(fa)];return {h:H0,k:l.m,a:l.e,toe}};
+  const armOf=(S,Ht,eb)=>{const a=ik(S,Ht,FIG.UA,FIG.FA,eb);return {s:S,e:a.m,w:a.e}};
+  const drawLeg=(L,cls,mus)=>{let g=seg(L.h,L.k,RAD.th[0],RAD.th[1],cls)+seg(L.k,L.a,RAD.sh[0],RAD.sh[1],cls)+seg(L.a,L.toe,2.9,2,cls);
+    if(mus){// côté avant de la jambe = côté du ventre quand la jambe pend
+      const sA=sideOf(L.h,L.k,ant),sS=sideOf(L.k,L.a,ant);let c;
+      if(c=has("quads"))g+=belly(L.h,L.k,RAD.th[0],RAD.th[1],.12,.92,sA,c);
+      if(c=has("hams"))g+=belly(L.h,L.k,RAD.th[0],RAD.th[1],.14,.9,-sA,c);
+      if(c=has("adductors"))g+=belly(L.h,L.k,RAD.th[0],RAD.th[1],.08,.5,0,c,.45);
+      if(c=has("calves"))g+=belly(L.k,L.a,RAD.sh[0],RAD.sh[1],.06,.58,-sS,c);
+    }return g};
+  const drawArm=(A,cls,mus)=>{let g=seg(A.s,A.e,RAD.ua[0],RAD.ua[1],cls)+seg(A.e,A.w,RAD.fa[0],RAD.fa[1],cls)+C(A.w,2.9,cls);
+    if(mus){const s1=sideOf(A.s,A.e,ant),s2=sideOf(A.e,A.w,ant);let c;
+      if(c=has("biceps"))g+=belly(A.s,A.e,RAD.ua[0],RAD.ua[1],.3,.92,s1,c);
+      if(c=has("triceps"))g+=belly(A.s,A.e,RAD.ua[0],RAD.ua[1],.18,.9,-s1,c);
+      if(c=has("forearm"))g+=belly(A.e,A.w,RAD.fa[0],RAD.fa[1],.04,.62,0,c,.85);
+      const d=has("delt_ant")||has("delt_lat")||has("delt_post");
+      if(d){const v=[A.e[0]-A.s[0],A.e[1]-A.s[1]],L=Math.hypot(...v),sh0=has("delt_ant")&&!has("delt_post")?.35:has("delt_post")&&!has("delt_ant")&&!has("delt_lat")?-.35:0;
+        g+=`<ellipse cx="${f1(A.s[0]+v[0]/L*3.5+ant[0]*sh0*4)}" cy="${f1(A.s[1]+v[1]/L*3.5+ant[1]*sh0*4)}" rx="7" ry="5.6" transform="rotate(${f1(Math.atan2(v[1],v[0])*180/Math.PI)} ${f1(A.s[0]+v[0]/L*3.5+ant[0]*sh0*4)} ${f1(A.s[1]+v[1]/L*3.5+ant[1]*sh0*4)})" class="${d}"/>`}
+    }return g};
+  // bras : soit qui pendent (charge tenue bras tendus), soit main placée sur une cible (H absolue, Hs relative au tronc)
+  const S=[sh[0]-ant[0]*1.2,sh[1]-ant[1]*1.2];
+  let arm;
+  if(P.arm==="hang")arm={s:S,e:[S[0]+ant[0]*1.2,S[1]+FIG.UA],w:[S[0]+ant[0]*2.5,S[1]+FIG.UA+FIG.FA-1]};
+  else{const Ht=P.Hs?[sh[0]+ant[0]*P.Hs[0]-ux*P.Hs[1],sh[1]+ant[1]*P.Hs[0]-uy*P.Hs[1]]:P.H;arm=armOf(S,Ht,P.eb??1)}
+  const L1=leg(P.A,P.kb??1,P.ft,false);
+  const L2=P.A2?leg(P.A2,P.kb2??P.kb??1,P.ft2,true):leg([P.A[0]-ant[0]*1.5,P.A[1]-ant[1]*1.5],P.kb??1,P.ft,true);
+  const arm2=P.arm==="hang"?{s:[arm.s[0]-ant[0]*2,arm.s[1]-1.5],e:[arm.e[0]-ant[0]*2,arm.e[1]-1.5],w:[arm.w[0]-ant[0]*2,arm.w[1]-1.5]}
+    :{s:[arm.s[0]-ant[0]*1.5-ux*1.5,arm.s[1]-ant[1]*1.5-uy*1.5],e:[arm.e[0]-1.8,arm.e[1]-1.4],w:[arm.w[0]-1.6,arm.w[1]-1.2]};
+  // plans arrière (membres côté opposé)
+  back+=drawLeg(L2,"bd far",false)+drawArm(arm2,"bd far",false);
+  // tronc : capsule + fessiers + poitrine
+  const glute=[hip[0]-ant[0]*3.2+ux*1,hip[1]-ant[1]*3.2+uy*1];
+  mid+=C(glute,7.6,"bd")+seg(hip,sh,RAD.torsoH,RAD.torsoS,"bd")+C([sh[0]+ant[0]*2-ux*5,sh[1]+ant[1]*2-uy*5],8.2,"bd");
+  const neckA=[sh[0]+ux*2,sh[1]+uy*2],neckB=[sh[0]+ux*(FIG.N+1),sh[1]+uy*(FIG.N+1)];
+  mid+=seg(neckA,neckB,3.6,3.3,"bd")+C(head,FIG.HR,"bd hd")+C([head[0]+ant[0]*4.2-ux*1.2,head[1]+ant[1]*4.2-uy*1.2],1.1,"eye");
+  // muscles du tronc (côté ventre = +1 sur la normale du segment hanche→épaule quand F=1)
+  const sT=sideOf(hip,sh,ant);let c;
+  if(c=has("pecs"))mid+=belly(hip,sh,RAD.torsoH,RAD.torsoS,.62,.98,sT,c,1.02);
+  if(c=has("abs"))mid+=belly(hip,sh,RAD.torsoH,RAD.torsoS,.08,.6,sT,c,.98);
+  if(c=has("obliques"))mid+=belly(hip,sh,RAD.torsoH,RAD.torsoS,.1,.55,0,c,.5);
+  if(c=has("lats"))mid+=belly(hip,sh,RAD.torsoH,RAD.torsoS,.4,.9,-sT,c,1.02);
+  if(c=has("lowback"))mid+=belly(hip,sh,RAD.torsoH,RAD.torsoS,.04,.42,-sT,c,1.0);
+  if(c=has("traps"))mid+=belly(hip,[sh[0]+ux*8,sh[1]+uy*8],RAD.torsoH,RAD.torsoS*.7,.8,1,-sT,c,1.1);
+  if(c=has("glutes"))mid+=`<circle cx="${f1(glute[0])}" cy="${f1(glute[1])}" r="6.6" class="${c}"/>`;
+  front+=drawLeg(L1,"bd",true)+drawArm(arm,"bd",true);
+  // équipement attaché à la main / au corps
+  const a=x.att,h=arm.w;
+  if(a==="bar")eqf+=`<circle cx="${f1(h[0])}" cy="${f1(h[1])}" r="8" class="eq plate"/><circle cx="${f1(h[0])}" cy="${f1(h[1])}" r="2" class="eq fill"/>`;
+  if(a==="db")eqf+=`<rect x="${f1(h[0]-7)}" y="${f1(h[1]-2.6)}" width="14" height="5.2" rx="2" class="eq fill"/>`;
+  if(a==="dbv")eqf+=`<rect x="${f1(h[0]-2.6)}" y="${f1(h[1]-7)}" width="5.2" height="14" rx="2" class="eq fill"/>`;
+  if(a==="cable")eqb+=Ln(x.pulley,h,"eq thin")+C(h,2.6,"eq fill");
+  if(a==="pullbar")eqb+=Ln(x.pulley,[h[0],h[1]],"eq thin")+`<line x1="${f1(h[0]-16)}" y1="${f1(h[1]-1)}" x2="${f1(h[0]+16)}" y2="${f1(h[1]-1)}" class="eq bar"/>`;
+  if(a==="handle")eqf+=`<line x1="${f1(h[0])}" y1="${f1(h[1]-6)}" x2="${f1(h[0])}" y2="${f1(h[1]+6)}" class="eq bar"/>`+Ln([h[0],h[1]],[160,h[1]-2],"eq thin");
+  if(a==="pad")eqf+=C(L1.a,4.2,"eq fill");
+  if(a==="platform")eqf+=Ln([L1.a[0]-13,L1.a[1]-15],[L1.a[0]+13,L1.a[1]+15],"eq bench");
+  if(a==="plateHip")eqf+=`<circle cx="${f1(hip[0]+ant[0]*9)}" cy="${f1(hip[1]+ant[1]*9)}" r="9" class="eq plate"/>`;
+  if(a==="barBack")eqb+=`<circle cx="${f1(sh[0]-ant[0]*4-ux*3)}" cy="${f1(sh[1]-ant[1]*4-uy*3)}" r="10" class="eq plate"/>`;
+  return `<line x1="-60" y1="140" x2="260" y2="140" class="gr"/>${x.st||""}${eqb}${back}${mid}${front}${eqf}`;
+}
+/* de quel côté (+1/-1 sur la normale du segment) se trouve la direction « ant » */
+function sideOf(A,B,ant){const dx=B[0]-A[0],dy=B[1]-A[1];const nx=-dy,ny=dx;return (nx*ant[0]+ny*ant[1])>=0?1:-1}
+/* carte face / dos avec les muscles de l'exercice (ou des niveaux de chaleur) */
+function bodyMap(fillOf,opts){
+  opts=opts||{};const parts=[];
+  for(const [side,dx] of [["F",0],["B",560]]){
+    let g="";for(const [k,d] of BODYMAP[side]){const f=fillOf(k);g+=`<path d="${d}" class="${f.cls||"bm"}"${f.style?` style="${f.style}"`:""}>${f.t?`<title>${esc(f.t)}</title>`:""}</path>`}
+    parts.push(`<g transform="translate(${dx} 0)">${g}</g>`);
+  }
+  return `<svg class="bmap${opts.small?" small":""}" viewBox="-10 -10 1080 1120" role="img" aria-label="${esc(opts.label||"Muscles")}">${parts.join("")}</svg>`;
+}
+function exoMap(x){
+  const cls={};for(const g of x.m.s)for(const k of MG[g].map)cls[k]="bm m2";for(const g of x.m.p)for(const k of MG[g].map)cls[k]="bm m1";
+  return bodyMap(k=>({cls:cls[k]||(k==="HD"||k==="KN"||k==="NK"?"bm bm0":"bm")}),{small:true,label:"Muscles travaillés : "+x.name});
 }
 const animFigs=new Set();let figRAF=null;
 function figTick(now){
   const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
   for(const el of [...animFigs]){if(!el.isConnected){animFigs.delete(el);continue}
     const x=EXOS.find(e=>e.id===el.dataset.exo);if(!x)continue;
-    const ph=(now/2600)%1;const u=reduce?(ph<.5?0:1):(1-Math.cos(ph*2*Math.PI))/2;
+    const ph=(now/2800)%1;const u=reduce?(ph<.5?0:1):(1-Math.cos(ph*2*Math.PI))/2;
     el.innerHTML=figSVG(x,u);}
   figRAF=animFigs.size?requestAnimationFrame(figTick):null;
 }
-function startFigs(root){(root||document).querySelectorAll("svg.fig[data-exo]").forEach(el=>animFigs.add(el));if(!figRAF&&animFigs.size)figRAF=requestAnimationFrame(figTick)}
-function figBlock(x){return `<div class="figbox"><svg class="fig" data-exo="${x.id}" viewBox="0 -14 200 162" role="img" aria-label="Mouvement : ${esc(x.name)}">${figSVG(x,0)}</svg>
+/* cadrage : on zoome sur le bonhomme et son matériel (union des 2 positions), sol compris */
+const FIGVB={};
+function fitFig(el,x){
+  if(!FIGVB[x.id]){let a=[1e9,1e9,-1e9,-1e9];
+    for(const u of [0,1]){el.innerHTML=figSVG(x,u);for(const c of el.children){if(c.classList.contains("gr"))continue;try{const b=c.getBBox();if(!b.width&&!b.height)continue;a=[Math.min(a[0],b.x),Math.min(a[1],b.y),Math.max(a[2],b.x+b.width),Math.max(a[3],b.y+b.height)]}catch{}}}
+    if(a[0]>a[2])return;const pad=8;let x0=a[0]-pad,x1=a[2]+pad,y0=a[1]-pad,y1=Math.max(a[3],140)+6;
+    let w=x1-x0,h=y1-y0;if(w<h*1.05){const d=(h*1.05-w)/2;x0-=d;w=h*1.05}if(h<w*.62){y0-=(w*.62-h);h=w*.62}
+    FIGVB[x.id]=`${x0.toFixed(1)} ${y0.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`;el.innerHTML=figSVG(x,0)}
+  el.setAttribute("viewBox",FIGVB[x.id]);
+}
+function startFigs(root){(root||document).querySelectorAll("svg.fig[data-exo]").forEach(el=>{const x=EXOS.find(e=>e.id===el.dataset.exo);if(x)fitFig(el,x);animFigs.add(el)});if(!figRAF&&animFigs.size)figRAF=requestAnimationFrame(figTick)}
+function figBlock(x){
+  const lab=g=>MG[g].n;
+  return `<div class="figbox"><svg class="fig" data-exo="${x.id}" viewBox="0 -16 200 164" role="img" aria-label="Mouvement : ${esc(x.name)}">${figSVG(x,0)}</svg>
+  <div class="figmap">${exoMap(x)}<div class="mlegend"><div><b>Travaille surtout</b><span><i class="m1"></i>${x.m.p.map(lab).join(", ")}</span></div>${x.m.s.length?`<div><b>Aide aussi</b><span><i class="m2"></i>${x.m.s.map(lab).join(", ")}</span></div>`:""}</div></div>
   <ol class="cues">${x.cues.map(c=>`<li>${esc(c)}</li>`).join("")}</ol></div>`}
+
 
 /* ---------- séance en cours ---------- */
 function fillExoList(){
@@ -1084,7 +1301,7 @@ function renderSession(){
     <div class="inp"><label class="label" for="dDur">Durée de la séance (min)</label><input id="dDur" inputmode="numeric" value="${esc(draft.dureeManuelle??"")}" placeholder="${ck.sessStart?"Chrono : "+Math.round(sessElapsed(ck)/6e4)+" min, ou tape ta durée":"Tape ta durée si tu n'as pas lancé le chrono"}"></div>
     <div class="inp"><label class="label" for="dNotes">Notes</label><textarea id="dNotes" placeholder="Sensations, douleurs, questions…">${esc(draft.notes)}</textarea></div>
     <button class="btn" id="saveSession">Enregistrer la séance</button>
-    <div class="row between"><p class="msg" id="sessMsg"></p><button class="link" id="resetDraft" style="color:var(--muted)">Vider la séance</button></div></div></section>`;
+    <div class="row between"><p class="msg" id="sessMsg"></p><button class="link" id="resetDraft" style="color:var(--danger)">Annuler la séance</button></div></div></section>`;
   $("#sessionBody").innerHTML=h;fillExoList();startFigs($("#sessionBody"));
 }
 
@@ -1113,7 +1330,7 @@ function heroHTML(sug,ld){
     <div class="big" style="${title.length>9?"font-size:2.4rem;line-height:.95":""}">${esc(title)}</div>
     <div class="meta">${esc(meta)}</div>${other}
     <div class="prog"><span>Séries faites</span><span id="heroProg" class="num">${done} / ${total}</span></div>
-    <div class="bar"><i id="heroBar" style="--p:${total?Math.round(done/total*100):0}%"></i></div>${action}${fix}</div>`;
+    <div class="bar"><i id="heroBar" style="--p:${total?Math.round(done/total*100):0}%"></i></div>${action}${fix}${(ck.warmStart||ck.sessStart||touched(draft))?`<button class="cancelbtn" id="cancelSess">✕ Annuler cette séance</button>`:""}</div>`;
 }
 // coche d'une série : reprend les valeurs affichées en gris (dernière fois ou objectif) si les cases sont vides
 function checkSet(i,j,fromPrev){
@@ -1169,7 +1386,7 @@ $("#sessionBody").addEventListener("click",e=>{
     e2.sets=last.sets.map(s=>({w:s.w??"",r:(s.d??s.r)??"",g:(s.g??(e2.uni?s.r:""))??""}));e2.band=!!last.band;save();renderSession()}
   else if(b.id==="addEx"){const n=$("#extraEx").value.trim();if(!n)return;
     draft.entries.push({key:key(n),name:n,target:"en plus",pdc:false,band:false,uni:isUni(n),rpe:"",sets:[{w:"",r:"",g:""},{w:"",r:"",g:""},{w:"",r:"",g:""}]});save();renderSession()}
-  else if(b.id==="resetDraft"){if(!confirmArm(b,"Confirmer : tout vider"))return;draft=newDraft(current);save();stopRest(true);releaseWake();renderSession();renderTimer();renderPlanBanner()}
+  else if(b.id==="resetDraft"||b.id==="cancelSess"){if(!confirmArm(b,b.id==="cancelSess"?"Touche encore pour confirmer l'annulation":"Confirmer : annuler la séance"))return;cancelSession()}
   else if(b.dataset.chk){const [i,j]=b.dataset.chk.split("_").map(Number);checkSet(i,j)}
   else if(b.dataset.prevfill){const [i,j]=b.dataset.prevfill.split("_").map(Number);checkSet(i,j,true)}
   else if(b.dataset.fig!=null){const k=draft.entries[b.dataset.fig].key;figOpen.has(k)?figOpen.delete(k):figOpen.add(k);renderSession()}
@@ -1196,20 +1413,20 @@ $("#sessionBody").addEventListener("click",e=>{
   else if(b.id==="coachRedo"){coachOpen=true;delete draft.coach;delete draft.planId;save();renderSession();renderPlanBanner()}
 });
 let remoteTimer=null;
-let pulled=false, lastTouched=ls.get("lastTouched",null);
+let pulled=false, lastTouched=ls.get("lastTouched",null), cancelTs=ls.get("cancelTs",0);
 function save(){
   if(draft){if(touched(draft)){draft.ts=Date.now();if(!draft.editId&&!draft.past){lastTouched=draft;ls.set("lastTouched",draft)}}else draft.ts=0}
   ls.set("draft",draft);ls.set("stash",stash);clearTimeout(remoteTimer);remoteTimer=setTimeout(pushDrafts,1200)}
 const draftDoc=()=>db.doc("data/users/"+uid+"/private").collection("state").doc("draft");
-async function pushDrafts(){if(mode!=="db"||!uid||role!=="athlete"||!pulled)return;try{await draftDoc().set({json:JSON.stringify({draft,stash,lastTouched}),ts:Date.now()})}catch{}}
+async function pushDrafts(){if(mode!=="db"||!uid||role!=="athlete"||!pulled)return;try{await draftDoc().set({json:JSON.stringify({draft,stash,lastTouched,cancelTs}),ts:Date.now()})}catch{}}
 async function pullDrafts(){
   try{const s=await draftDoc().get();if(!s.exists)return false;const o=JSON.parse(s.data().json||"{}");
-    let changed=false;
-    const cands=[o.draft,o.lastTouched,lastTouched].filter(d=>d&&GYM.includes(d.type)&&d.warm&&touched(d)).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    let changed=false;if((o.cancelTs||0)>cancelTs){cancelTs=o.cancelTs;ls.set("cancelTs",cancelTs)}
+    const cands=[o.draft,o.lastTouched,lastTouched].filter(d=>d&&GYM.includes(d.type)&&d.warm&&touched(d)&&(d.ts||0)>cancelTs).sort((a,b)=>(b.ts||0)-(a.ts||0));
     const best=cands[0];
     if(best&&(!touched(draft)||(best.ts||0)>(draft.ts||0))&&best!==draft){draft=best;changed=true}
     if(o.lastTouched&&(!lastTouched||(o.lastTouched.ts||0)>(lastTouched.ts||0))){lastTouched=o.lastTouched;ls.set("lastTouched",lastTouched)}
-    for(const k in (o.stash||{}))if(!stash[k]||(o.stash[k].ts||0)>(stash[k].ts||0)){stash[k]=o.stash[k];changed=true}
+    for(const k in (o.stash||{}))if((o.stash[k].ts||0)>cancelTs&&(!stash[k]||(o.stash[k].ts||0)>(stash[k].ts||0))){stash[k]=o.stash[k];changed=true}
     if(changed){ls.set("draft",draft);ls.set("stash",stash)}return changed}catch{return false}finally{pulled=true}
 }
 let warmEdit=false;
@@ -1475,35 +1692,43 @@ function renderPain(){
     +`<p class="hint">Si une gêne revient plusieurs fois au même endroit, baisse la charge ou change d'exercice. Une douleur forte ou qui dure : demande l'avis d'un médecin ou d'un kiné.</p>`
     :`<p class="hint">Aucune gêne notée. Pendant la séance, utilise « Gêne » sur un exercice si tu sens quelque chose (épaule, doigts, coude…).</p>`);
 }
-const MUSCLES={pecs:"Pectoraux",epaules:"Épaules",biceps:"Biceps",avbras:"Avant-bras",abdos:"Abdos",quadri:"Quadriceps",mollets:"Mollets",traps:"Trapèzes",dos:"Dos",triceps:"Triceps",lombaires:"Lombaires",fessiers:"Fessiers",ischios:"Ischios"};
-const MMAP=[[/pompe|dips|couche|incline|pectoral|pec deck(?! inv)|ecarte|chest|butterfly/,["pecs","triceps","epaules"]],
- [/militaire|elevation|epaule|arnold|overhead/,["epaules"]],[/oiseau|invers|face pull|deltoide post/,["epaules","traps"]],
- [/leg curl|ischio/,["ischios"]],[/marteau/,["avbras","biceps"]],[/curl/,["biceps","avbras"]],
- [/triceps|barre au front|kickback/,["triceps"]],[/traction|chin|pull ?up/,["dos","biceps"]],
- [/tirage|row|rowing|pull rack|lat|pulldown/,["dos","traps","biceps"]],[/shrug|haussement/,["traps"]],
- [/lombaire|hyperextension|good morning/,["lombaires","fessiers"]],[/souleve|deadlift|rdl/,["ischios","fessiers","lombaires"]],
- [/gainage|planche|crunch|abdo|releve/,["abdos"]],[/hip thrust|pont fessier|glute/,["fessiers","ischios"]],
- [/squat|presse|fente|bulgare|leg extension|lunge/,["quadri","fessiers"]],[/mollet|calf/,["mollets"]]];
-function musclesOf(name){const k=" "+key(name)+" ";for(const [re,m] of MMAP)if(re.test(k))return m;return []}
-function renderMuscles(){
-  const since=new Date(Date.now()-7*864e5).toISOString().slice(0,10),cnt={};
-  for(const w of workouts)if(w.date>=since)for(const e of (w.entries||[])){const ms=musclesOf(e.name);ms.forEach((m,i)=>cnt[m]=(cnt[m]||0)+e.sets.length*(i?0.5:1))}
-  const col=m=>{const v=cnt[m]||0;return v<=0?"var(--line)":v<4?"var(--heat1)":v<8?"var(--heat2)":"var(--heat3)"};
-  const E=(m,cx,cy,rx,ry,rot)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" ${rot?`transform="rotate(${rot} ${cx} ${cy})"`:""} fill="${col(m)}"><title>${MUSCLES[m]}</title></ellipse>`;
-  const base=x=>`<g fill="var(--soft)" stroke="var(--line)" stroke-width="1.5"><circle cx="${x}" cy="20" r="13"/><path d="M${x-26} 46 Q${x} 36 ${x+26} 46 L${x+30} 70 L${x+36} 150 L${x+28} 152 L${x+22} 92 L${x+20} 140 L${x+22} 262 L${x+6} 262 L${x+1} 160 L${x-1} 160 L${x-6} 262 L${x-22} 262 L${x-20} 140 L${x-22} 92 L${x-28} 152 L${x-36} 150 L${x-30} 70 Z"/></g>`;
-  const front=x=>base(x)+E("epaules",x-26,56,9,11)+E("epaules",x+26,56,9,11)+E("pecs",x-11,64,11,9)+E("pecs",x+11,64,11,9)+E("biceps",x-31,86,6,14,8)+E("biceps",x+31,86,6,14,-8)
-    +E("avbras",x-33,122,5,15,6)+E("avbras",x+33,122,5,15,-6)+E("abdos",x,100,11,22)+E("quadri",x-12,178,9,30)+E("quadri",x+12,178,9,30)+E("mollets",x-13,232,6,18)+E("mollets",x+13,232,6,18);
-  const back=x=>base(x)+E("traps",x,48,16,8)+E("epaules",x-26,56,9,11)+E("epaules",x+26,56,9,11)+E("dos",x-13,80,11,20,-8)+E("dos",x+13,80,11,20,8)
-    +E("triceps",x-31,88,6,14,8)+E("triceps",x+31,88,6,14,-8)+E("lombaires",x,116,8,10)+E("fessiers",x-10,146,11,12)+E("fessiers",x+10,146,11,12)
-    +E("ischios",x-12,192,8,26)+E("ischios",x+12,192,8,26)+E("mollets",x-13,234,7,18)+E("mollets",x+13,234,7,18);
-  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([m,v])=>`${MUSCLES[m]} ${Math.round(v)}`).join(" · ");
-  const rest=Object.keys(MUSCLES).filter(m=>!cnt[m]).map(m=>MUSCLES[m]);
-  $("#muscleCard").innerHTML=`<div class="row between"><h2>Muscles travaillés</h2><span class="label">7 derniers jours</span></div>
-    <svg viewBox="0 0 220 272" style="width:100%;max-width:340px;margin:0 auto;display:block" role="img" aria-label="Muscles travaillés cette semaine">${front(55)}${back(165)}
-    <text x="55" y="270" text-anchor="middle" font-size="10" fill="var(--muted)">Face</text><text x="165" y="270" text-anchor="middle" font-size="10" fill="var(--muted)">Dos</text></svg>
-    <div class="legend"><span><i style="background:var(--line)"></i>Repos</span><span><i style="background:var(--heat1)"></i>Un peu</span><span><i style="background:var(--heat2)"></i>Bien</span><span><i style="background:var(--heat3)"></i>Beaucoup</span></div>
-    <p class="hint">${top?`<b>Le plus travaillé :</b> ${esc(top)} séries.`:"Aucune séance ces 7 derniers jours."}${rest.length&&top?` <b>Pas touché :</b> ${esc(rest.join(", "))}.`:""}</p>`;
+/* ---------- muscles travaillés (onglet Évolution) ----------
+   Séries par muscle et par semaine : 1 quand le muscle est la cible, 0,5 quand il aide (Pelland et al. 2024).
+   Repère : environ 10 à 20 séries par muscle et par semaine pour progresser (méta-analyses Schoenfeld 2017, Baz-Valle 2022). */
+let musclePeriod=ls.get("musclePeriod",7);
+const MORDER=["pecs","delt_ant","delt_lat","delt_post","traps","lats","lowback","biceps","triceps","forearm","abs","obliques","glutes","quads","hams","adductors","calves"];
+function muscleVolume(days){
+  const since=new Date(Date.now()-days*864e5).toISOString().slice(0,10),v={};for(const g of MORDER)v[g]=0;
+  for(const w of workouts)if(w.date>=since)for(const e of (w.entries||[])){
+    const n=(e.sets||[]).filter(s=>s&&(String(s.r??"")!==""||String(s.g??"")!=="")).length||0;if(!n)continue;
+    const m=musclesFor(e.name);for(const g of m.p)v[g]+=n;for(const g of m.s)v[g]+=n*.5}
+  const k=7/days;for(const g in v)v[g]=Math.round(v[g]*k*10)/10;return v;
 }
+const heatOf=v=>v<=0?null:v<5?"var(--h1)":v<10?"var(--h2)":v<20?"var(--h3)":"var(--h4)";
+const statusOf=v=>v<=0?["Pas travaillé","no"]:v<5?["Très peu","no"]:v<10?["À renforcer","warn"]:v<=20?["Bien","ok"]:["Beaucoup","ok"];
+function renderMuscles(){
+  const days=musclePeriod,v=muscleVolume(days);
+  // une zone de la carte peut appartenir à plusieurs groupes (deltoïde latéral) : on garde le plus travaillé
+  const zone={},zt={};for(const g of MORDER)for(const k of MG[g].map){if((zone[k]??-1)<v[g]){zone[k]=v[g]}zt[k]=(zt[k]?zt[k]+" · ":"")+MG[g].n+" : "+String(v[g]).replace(".",",")+" séries/sem."}
+  const map=bodyMap(k=>{if(k==="HD"||k==="KN")return {cls:"bm bm0"};const h=heatOf(zone[k]||0);return {cls:"bm",style:h?`fill:${h}`:"",t:zt[k]}},{label:"Carte des muscles travaillés"});
+  const rows=MORDER.map(g=>[g,v[g]]).sort((a,b)=>b[1]-a[1]);
+  const mx=Math.max(24,...rows.map(r=>r[1]));
+  const list=rows.map(([g,x])=>{const [lbl,cls]=statusOf(x);return `<div class="mrow"><span class="mname">${esc(MG[g].n)}</span>
+    <span class="mbar" style="--z0:${10/mx*100}%;--z1:${20/mx*100}%"><i style="width:${Math.min(100,x/mx*100)}%;background:${heatOf(x)||"transparent"}"></i></span>
+    <span class="mval num">${String(x).replace(".",",")}</span><span class="mst ${cls}">${lbl}</span></div>`}).join("");
+  const low=rows.filter(([g,x])=>x<10).reverse().slice(0,4);
+  const EXTRA={adductors:["Machine à adducteurs","Squat sumo"],obliques:["Gainage latéral","Russian twist"]};
+  const tips=low.map(([g])=>{const ex=(EXTRA[g]||EXOS.filter(e=>e.m.p.includes(g)).slice(0,2).map(e=>e.name));return `<li><b>${esc(MG[g].n)}</b>${ex.length?" : "+esc(ex.join(" ou ")):""}</li>`}).join("");
+  const any=rows.some(r=>r[1]>0);
+  $("#muscleCard").innerHTML=`<div class="row between"><h2>Muscles travaillés</h2>
+      <div class="seg small" role="group" aria-label="Période" style="min-width:170px">${[[7,"7 jours"],[28,"4 semaines"]].map(([d,l])=>`<button data-mper="${d}" aria-pressed="${days===d}">${l}</button>`).join("")}</div></div>
+    ${map}
+    <div class="legend"><span><i style="background:var(--fig-body)"></i>Rien</span><span><i style="background:var(--h1)"></i>1–4</span><span><i style="background:var(--h2)"></i>5–9</span><span><i style="background:var(--h3)"></i>10–20</span><span><i style="background:var(--h4)"></i>20+</span></div><p class="hint" style="font-size:.8rem;margin-top:-4px">Couleurs = séries par semaine. Dans la liste, la bande verte = zone conseillée (10 à 20).</p>
+    ${any?`<div class="mlist"><div class="mrow mhead"><span>Muscle</span><span>Séries / semaine</span><span></span><span></span></div>${list}</div>
+    ${tips?`<div class="mtips"><b>À travailler un peu plus</b><ul>${tips}</ul></div>`:""}`:`<p class="hint">Aucune séance sur cette période.</p>`}
+    <p class="hint" style="font-size:.8rem">Une série compte 1 pour le muscle visé et 0,5 pour les muscles qui aident. Repère : environ 10 à 20 séries par muscle et par semaine pour progresser. L'escalade n'est pas comptée.</p>`;
+}
+$("#muscleCard").addEventListener("click",e=>{const b=e.target.closest("[data-mper]");if(!b)return;musclePeriod=+b.dataset.mper;ls.set("musclePeriod",musclePeriod);renderMuscles()});
 function renderForce(){
   renderMuscles();renderCalendar();renderPain();
   const n=workouts.length, tons=workouts.reduce((a,w)=>a+tonnage(w),0);
@@ -1895,6 +2120,14 @@ function restAlert(){
   const o=$("#restDone");o.hidden=false;clearTimeout(doneTimer);doneTimer=setTimeout(()=>o.hidden=true,6000);
 }
 $("#restDone").addEventListener("click",()=>{$("#restDone").hidden=true});
+/* annule la séance en cours (lancée par erreur) : chronos arrêtés, séries effacées, rien n'est enregistré */
+function cancelSession(){
+  stopRest(true);clockEdit=false;delete stash[current];ls.set("stash",stash);
+  cancelTs=Date.now();ls.set("cancelTs",cancelTs);if(lastTouched&&lastTouched.type===current){lastTouched=null;ls.set("lastTouched",null)}
+  draft=newDraft(current);save();releaseWake();renderSession();renderTimer();renderPlanBanner();
+  window.scrollTo({top:0,behavior:"smooth"});
+  const m=$("#sessMsg");if(m){m.className="msg ok";m.textContent="Séance annulée, rien n'a été enregistré."}
+}
 function startWarm(){$("#suggest").innerHTML="";draft.clock.warmStart=Date.now();save();keepAwake();renderSession();renderTimer()}
 function startSession(){
   const ck=draft.clock,now=Date.now();
@@ -1927,10 +2160,10 @@ function renderTimer(){
   }
   if(!ck.sessStart){
     bar.innerHTML=`<div class="clock"><span class="label">Échauffement</span><b id="tWarm">0:00</b></div>
-      <div class="acts"><button class="chip" id="tbEdit">✎ Régler</button><button class="btn small go" id="tbStart">Démarrer la séance</button></div>`;
+      <div class="acts"><button class="chip" id="tbCancel" aria-label="Annuler la séance">✕ Annuler</button><button class="chip" id="tbEdit">✎ Régler</button><button class="btn small go" id="tbStart">Démarrer la séance</button></div>`;
   }else{
     const sess=`<div class="clock"><span class="label">${ck.paused?"Séance · en pause":"Séance"}</span><b id="tSess" style="${ck.paused?"color:var(--muted)":""}">0:00</b></div>
-      <button class="chip" id="tbEdit" aria-label="Régler le chrono à la main">✎ Régler</button><button class="chip" id="tbPause" aria-label="${ck.paused?"Reprendre le chrono":"Mettre le chrono en pause"}">${ck.paused?"▶ Reprendre":"❚❚ Pause"}</button>`;
+      <button class="chip" id="tbEdit" aria-label="Régler le chrono à la main">✎ Régler</button><button class="chip" id="tbPause" aria-label="${ck.paused?"Reprendre le chrono":"Mettre le chrono en pause"}">${ck.paused?"▶ Reprendre":"❚❚ Pause"}</button><button class="chip" id="tbCancel" aria-label="Annuler la séance">✕ Annuler</button>`;
     if(rest){
       bar.innerHTML=sess+`<div class="clock rest" style="margin-left:auto"><span class="label">Repos ${durLbl(rest.dur)}</span><b id="tRest">0:00</b></div>
       <div class="acts" style="width:100%;margin-left:0"><button class="chip" id="tbReset">↺ Relancer</button><button class="chip" id="tbPlus">+15 s</button><button class="chip" id="tbSkip">Passer</button></div>${rest.next?`<p class="hint" style="width:100%">Ensuite : <b>${esc(rest.next)}</b></p>`:""}`;
@@ -1943,6 +2176,7 @@ function renderTimer(){
 $("#timer").addEventListener("keydown",e=>{if(e.target.id==="tEdit"&&e.key==="Enter"){e.preventDefault();applyClockEdit()}});
 $("#timer").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
   if(b.id==="tbStart")startSession();
+  else if(b.id==="tbCancel"){if(confirmArm(b,"Sûr ? Touche encore"))cancelSession()}
   else if(b.id==="tbGo")startRest();
   else if(b.id==="tbSkip")stopRest();
   else if(b.id==="tbPause")togglePause();
