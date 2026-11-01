@@ -19,7 +19,7 @@ const rid=n=>{const c="abcdefghijklmnopqrstuvwxyz0123456789",a=crypto.getRandomV
 
 const NAME="repz_name";
 const getName=()=>{try{return localStorage.getItem(NAME)||""}catch{return ""}};
-const setName=n=>{try{localStorage.setItem(NAME,String(n||"").trim().slice(0,30))}catch{}};
+const setName=(n,quiet)=>{try{localStorage.setItem(NAME,String(n||"").trim().slice(0,30))}catch{};if(!quiet&&window.Account)window.Account.push("app/me",{name:getName()})};
 let cache=null;
 const loadAll=()=>cache||(cache=(async()=>{
   const d=await idb;
@@ -62,7 +62,23 @@ async function write(key,val){
   if(val===undefined){m.delete(key);await tx("readwrite",s=>s.delete(key))}
   else{val=clone(val);m.set(key,val);await tx("readwrite",s=>s.put(val,key))}
   notify(key);
+  if(window.Account)window.Account.push(key,val);
 }
+/* ---------- compte : sauvegarde en ligne et récupération depuis les autres appareils ---------- */
+let syncing=null;
+function syncAccount(){
+  const Acc=window.Account;if(!Acc||syncing)return syncing;
+  syncing=(async()=>{await Acc.ready;const m=await loadAll();
+    await Acc.flush();const remote=await Acc.pullAll();const rmap=new Map(remote.map(r=>[r.key,r.data]));const pend=new Set(Acc.pending());const changed=[];
+    if(Acc.isFirstSync()){for(const [k,v] of m)if(!rmap.has(k))Acc.push(k,v);await Acc.flush()}
+    else for(const k of [...m.keys()])if(!rmap.has(k)&&!pend.has(k)){m.delete(k);await tx("readwrite",s=>s.delete(k));changed.push(k)}
+    for(const [k,v] of rmap){if(pend.has(k))continue;if(JSON.stringify(m.get(k))!==JSON.stringify(v)){m.set(k,v);await tx("readwrite",s=>s.put(v,k));changed.push(k)}}
+    const me=rmap.get("app/me");if(me&&me.name&&!getName())setName(me.name,true);else if(getName()&&!me)Acc.push("app/me",{name:getName()});
+    Acc.markSynced();changed.forEach(notify);
+  })().catch(()=>{}).finally(()=>{syncing=null});
+  return syncing;
+}
+if(window.Account){syncAccount();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")syncAccount()})}
 function deepMerge(a,b){const o=isObj(a)?{...a}:{};for(const k in b){if(isObj(b[k])&&b[k].__delete__){delete o[k];continue}o[k]=isObj(b[k])&&isObj(o[k])?deepMerge(o[k],b[k]):b[k]}return o}
 function subscribe(match,run){const s={match,alive:true,run:m=>{try{run(m)}catch(e){console.error(e)}}};subs.add(s);loadAll().then(m=>s.alive&&s.run(m));return ()=>{s.alive=false;subs.delete(s)}}
 function docRef(coll,id){
@@ -182,14 +198,18 @@ window.REPZ={
   clearKey:()=>{try{localStorage.removeItem(KEY)}catch{}},
   exportAll:async()=>{const m=await loadAll();const o={};for(const [k,v] of m)o[k]=v;return JSON.stringify({app:"repz",v:1,date:new Date().toISOString(),docs:o})},
   importAll:async txt=>{const j=JSON.parse(txt);const docs=j.docs||j;if(!docs||typeof docs!=="object")throw new Error("Fichier invalide");
-    await tx("readwrite",s=>{s.clear();for(const [k,v] of Object.entries(docs))s.put(v,k)});cache=null;return Object.keys(docs).length}
+    await tx("readwrite",s=>{s.clear();for(const [k,v] of Object.entries(docs))s.put(v,k)});cache=null;
+    if(window.Account)for(const [k,v] of Object.entries(docs))window.Account.push(k,v);
+    return Object.keys(docs).length},
+  account:()=>window.Account&&window.Account.user?window.Account.user.email:null,
+  signOut:()=>window.Account&&window.Account.signOut(async()=>{await tx("readwrite",s=>s.clear());try{for(const k of Object.keys(localStorage))if(/^(repz_|acct\.repz)/.test(k)&&k!=="repz_theme")localStorage.removeItem(k)}catch{}})
 };
 
 const caps={db,user,sample};
 window.claude=Object.freeze({use:name=>Promise.resolve(caps[name]||null)});
 
 // premier lancement sans prénom : écran d'accueil, puis rechargement pour que l'app l'affiche partout
-loadAll().then(()=>{if(getName())return;const go=()=>askName().then(()=>location.reload());const when=()=>{if(window.Gate&&!window.Gate.allowed())document.addEventListener("gate-open",go,{once:true});else go()};document.body?when():addEventListener("DOMContentLoaded",when)});
+loadAll().then(async()=>{if(window.Account){await window.Account.ready;await syncAccount()}if(getName())return;const go=()=>askName().then(()=>location.reload());const when=()=>{if(window.Gate&&!window.Gate.allowed())document.addEventListener("gate-open",go,{once:true});else go()};document.body?when():addEventListener("DOMContentLoaded",when)});
 
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch{}

@@ -20,6 +20,7 @@ head = """<!doctype html>
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <script>window.GATE_CFG={app:"repz",name:"Repz",url:"https://vvxkkqcmjrwytagbxdfg.supabase.co",key:"sb_publishable_A-kJQIoJXxdXmjHF8iM40g_RP6myhMo",link:"https://tulliodisegni-art.github.io/Repz/",logo:"icons/icon-192.png",accent:"#E9B949",isOwner:function(){try{return localStorage.getItem("repz_owner")==="1"||!!localStorage.getItem("repz_mine_done")}catch(e){return false}}};</script><script src="gate.js"></script>
+<script src="vendor/supabase.js"></script><script>window.ACCT_CFG={app:"repz",name:"Repz",url:"https://vvxkkqcmjrwytagbxdfg.supabase.co",key:"sb_publishable_A-kJQIoJXxdXmjHF8iM40g_RP6myhMo",link:"https://tulliodisegni-art.github.io/Repz/",logo:"icons/icon-192.png"};</script><script src="account.js"></script>
 <script src="shim.js"></script>
 </head><body>
 """

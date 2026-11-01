@@ -514,9 +514,10 @@ svg.bmap{width:100%;display:block}
     <button class="btn" id="saveProg">Enregistrer le programme</button>
     <div class="card" id="backupCard" hidden>
       <h2>Sauvegarde</h2>
-      <p class="hint">Tes séances sont gardées sur ce téléphone. Exporte un fichier de temps en temps (par exemple dans iCloud Drive) pour ne rien perdre.</p>
+      <p class="hint">Tes séances sont gardées sur ce téléphone et sur ton compte. Tu peux aussi exporter un fichier de temps en temps.</p>
       <div class="row"><button class="btn small" id="bkExport">Exporter mes données</button><label class="btn small ghost" for="bkFile" style="cursor:pointer">Restaurer un fichier</label><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
       <p class="hint" id="bkKey"></p>
+      <p class="hint" id="bkAcct"></p>
       <p class="hint" id="bkName"></p>
       <button class="link" id="bkOwner" style="color:var(--muted);font-size:.8rem;align-self:flex-start" hidden>Propriétaire ?</button>
       <p class="msg" id="bkMsg"></p>
@@ -2081,12 +2082,15 @@ $("#phaseCard").addEventListener("click",async e=>{const b=e.target.closest("but
 function renderBackup(){
   if(!window.REPZ)return;$("#backupCard").hidden=false;
   $("#bkOwner").hidden=canShare();
+  const em=window.REPZ.account&&window.REPZ.account();
+  $("#bkAcct").innerHTML=em?`Compte : <b>${esc(em)}</b>, tes séances sont sauvegardées en ligne. <button class="link" id="bkOut">Se déconnecter</button>`:"";
   $("#bkName").innerHTML=`Prénom : <b>${esc(window.REPZ.name()||"")}</b> <button class="link" id="bkNameEd">Changer</button>`;
   $("#bkKey").innerHTML=window.REPZ.hasKey()?`Clé Claude enregistrée (pour « Coller une séance »). <button class="link" id="bkKeyDel">Retirer la clé</button>`:"Clé Claude : pas encore enregistrée. Elle te sera demandée la première fois que tu colles une séance.";
 }
 $("#backupCard").addEventListener("click",async e=>{
   const m=$("#bkMsg");
   if(e.target.id==="bkKeyDel"){window.REPZ.clearKey();renderBackup();return}
+  if(e.target.id==="bkOut"){if(!confirmArm(e.target,"Touche encore pour te déconnecter"))return;window.REPZ.signOut();return}
   if(e.target.id==="bkOwner"){let ok;if(window.Gate)ok=await window.Gate.ownerLogin();else{const c=prompt("Code propriétaire");if(!c)return;ok=await window.REPZ.ownerCode(c)}m.className="msg "+(ok?"ok":"err");m.textContent=ok?"Mode propriétaire activé : le bouton Inviter est en haut.":"Code incorrect.";applyShare();renderBackup();return}
   if(e.target.id==="bkNameEd"){await window.REPZ.askName();renderBackup();renderWeek();return}
   if(e.target.id!=="bkExport")return;
@@ -2293,6 +2297,7 @@ const APP_URL="https://tulliodisegni-art.github.io/Repz/";
 function canShare(){return !window.REPZ||(window.Gate&&window.Gate.isOwner())||(window.REPZ.isOwner&&window.REPZ.isOwner())}
 function applyShare(){const b=$("#shareBtn");if(b)b.hidden=!canShare()}
 applyShare();
+if(window.Account)window.Account.ready.then(()=>{try{renderBackup()}catch(e){}});
 document.addEventListener("gate-owner",()=>{applyShare();if(typeof renderBackup==="function")renderBackup()});
 $("#shareBtn").addEventListener("click",async()=>{if(!canShare())return;
   if(window.Gate){window.Gate.invite();return}// appli installée : une invitation à usage unique par personne
