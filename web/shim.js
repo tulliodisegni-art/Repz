@@ -167,7 +167,14 @@ function askName(){return new Promise(ok=>{
   document.body.appendChild(d);const f=d.querySelector("form");setTimeout(()=>f.n.focus(),100);
   f.onsubmit=e=>{e.preventDefault();const v=f.n.value.trim();if(!v)return;setName(v);d.remove();ok(v)};
 })}
+/* partage de l'appli réservé au propriétaire : appareil chargé avec ses séances (lien perso) ou code propriétaire */
+const OWNER_H="63fda2eab9893320e9e13b672e032351a66650386c54f3f430a19d37165aaffd";
+const isOwner=()=>{try{return localStorage.getItem("repz_owner")==="1"||!!localStorage.getItem("repz_mine_done")}catch{return false}};
+async function ownerCode(code){const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("owner:"+String(code||"").trim()));
+  const h=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");if(h!==OWNER_H)return false;try{localStorage.setItem("repz_owner","1")}catch{}return true}
+{const q=new URLSearchParams(location.search).get("proprio");if(q)ownerCode(q).finally(()=>{try{history.replaceState(null,"",location.pathname)}catch{}})}
 window.REPZ={
+  isOwner,ownerCode,
   name:()=>getName(),
   setName:n=>setName(n),
   askName,

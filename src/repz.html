@@ -518,6 +518,7 @@ svg.bmap{width:100%;display:block}
       <div class="row"><button class="btn small" id="bkExport">Exporter mes données</button><label class="btn small ghost" for="bkFile" style="cursor:pointer">Restaurer un fichier</label><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
       <p class="hint" id="bkKey"></p>
       <p class="hint" id="bkName"></p>
+      <button class="link" id="bkOwner" style="color:var(--muted);font-size:.8rem;align-self:flex-start" hidden>Propriétaire ?</button>
       <p class="msg" id="bkMsg"></p>
     </div>
     <p class="msg" id="progMsg"></p>
@@ -2079,12 +2080,14 @@ $("#phaseCard").addEventListener("click",async e=>{const b=e.target.closest("but
   try{await saveProgram({...clone(program),phase:{n,start:n===1?null:todayISO()}})}catch{}renderPhase();renderSession()});
 function renderBackup(){
   if(!window.REPZ)return;$("#backupCard").hidden=false;
+  $("#bkOwner").hidden=canShare();
   $("#bkName").innerHTML=`Prénom : <b>${esc(window.REPZ.name()||"")}</b> <button class="link" id="bkNameEd">Changer</button>`;
   $("#bkKey").innerHTML=window.REPZ.hasKey()?`Clé Claude enregistrée (pour « Coller une séance »). <button class="link" id="bkKeyDel">Retirer la clé</button>`:"Clé Claude : pas encore enregistrée. Elle te sera demandée la première fois que tu colles une séance.";
 }
 $("#backupCard").addEventListener("click",async e=>{
   const m=$("#bkMsg");
   if(e.target.id==="bkKeyDel"){window.REPZ.clearKey();renderBackup();return}
+  if(e.target.id==="bkOwner"){const c=prompt("Code propriétaire");if(!c)return;const ok=await window.REPZ.ownerCode(c);m.className="msg "+(ok?"ok":"err");m.textContent=ok?"Mode propriétaire activé : le bouton Inviter est en haut.":"Code incorrect.";applyShare();renderBackup();return}
   if(e.target.id==="bkNameEd"){await window.REPZ.askName();renderBackup();renderWeek();return}
   if(e.target.id!=="bkExport")return;
   try{const txt=await window.REPZ.exportAll(),name="repz-"+todayISO()+".json",file=new File([txt],name,{type:"application/json"});
@@ -2286,7 +2289,11 @@ connect();connectSample();
 
 /* inviter quelqu'un : partage du lien de l'appli (chacun aura son propre carnet) */
 const APP_URL="https://tulliodisegni-art.github.io/Repz/";
-$("#shareBtn").addEventListener("click",async()=>{
+// seul le propriétaire peut envoyer l'appli (dans la version Claude, c'est toujours lui)
+function canShare(){return !window.REPZ||!window.REPZ.isOwner||window.REPZ.isOwner()}
+function applyShare(){const b=$("#shareBtn");if(b)b.hidden=!canShare()}
+applyShare();
+$("#shareBtn").addEventListener("click",async()=>{if(!canShare())return;
   const text="Je note mes séances de muscu avec Repz. Ouvre le lien dans Safari, puis Partager → « Sur l'écran d'accueil ». Ton carnet reste sur ton téléphone.";
   try{if(navigator.share){await navigator.share({title:"Repz",text,url:APP_URL});return}}catch(e){if(e&&e.name==="AbortError")return}
   try{await navigator.clipboard.writeText(text+"\n"+APP_URL);toastMsg("Lien copié, colle-le dans un message.")}
