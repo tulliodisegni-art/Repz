@@ -189,7 +189,7 @@ const caps={db,user,sample};
 window.claude=Object.freeze({use:name=>Promise.resolve(caps[name]||null)});
 
 // premier lancement sans prénom : écran d'accueil, puis rechargement pour que l'app l'affiche partout
-loadAll().then(()=>{if(getName())return;const go=()=>askName().then(()=>location.reload());document.body?go():addEventListener("DOMContentLoaded",go)});
+loadAll().then(()=>{if(getName())return;const go=()=>askName().then(()=>location.reload());const when=()=>{if(window.Gate&&!window.Gate.allowed())document.addEventListener("gate-open",go,{once:true});else go()};document.body?when():addEventListener("DOMContentLoaded",when)});
 
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch{}
