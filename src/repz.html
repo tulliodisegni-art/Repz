@@ -295,7 +295,10 @@ table.base td.now{white-space:nowrap;font-variant-numeric:tabular-nums}
 svg.fig{width:100%;max-width:420px;margin:0 auto;display:block}
 .fig .bd{fill:var(--fig-body);stroke:var(--fig-line);stroke-width:1.2;stroke-linejoin:round}
 .fig .far{fill:var(--fig-far)} .fig .eye{fill:var(--fig-line)}
-.fig .mu{stroke:none} .fig .m1{fill:var(--m1)} .fig .m2{fill:var(--m2)}
+.fig .mu{stroke:none;opacity:var(--i,1)} .fig .m1{fill:var(--m1)} .fig .m2{fill:var(--m2)}
+/* --i = intensité de l'effort (0 relâché, 1 contraction) : les muscles passent du neutre à l'orange / rouge */
+.figbox .bm.m1{fill:var(--m1);fill:color-mix(in srgb,var(--m1) calc(var(--i,1)*100%),var(--fig-body))}
+.figbox .bm.m2{fill:var(--m2);fill:color-mix(in srgb,var(--m2) calc(var(--i,1)*100%),var(--fig-body))}
 .fig .eq{stroke:var(--eq);stroke-width:3;fill:none;stroke-linecap:round}
 .fig .eq.fill{fill:var(--gold2);stroke:color-mix(in srgb,var(--gold2) 70%,#000);stroke-width:1}
 .fig .eq.plate{fill:var(--gold2);stroke:color-mix(in srgb,var(--gold2) 60%,#000);stroke-width:2}
@@ -871,11 +874,11 @@ const EXOS=[
   cues:["Corps gainé, droit des talons aux épaules","Tire la poitrine vers la barre","Redescends bras tendus sans casser le bassin"],
   st:`<line x1="124" y1="62" x2="176" y2="62" class="eq bar"/><line x1="168" y1="62" x2="168" y2="140" class="eq"/>`,
   f:[{p:[100,118],t:76,H:[150,63],eb:-1,A:[44,132],kb:1,ft:-10},{p:[103,102],t:58,H:[150,63],eb:-1,A:[54,138],kb:1,ft:-10}]},
- {id:"pushup",k:/pompe|push ?up/,name:"Pompes",
+ {id:"pushup",ct:0,k:/pompe|push ?up/,name:"Pompes",
   m:{p:["pecs"],s:["triceps","delt_ant","abs"]},
   cues:["Mains sous les épaules, corps bien gainé","Descends la poitrine près du sol, coudes à 45°","Pousse fort en gardant le bassin aligné"],
   f:[{p:[98,110],t:72,H:[136,139],eb:1,A:[44,136],ft:0},{p:[98,124],t:84,H:[136,139],eb:1,A:[42,136],ft:0}]},
- {id:"dips",k:/\bdips?\b/,name:"Dips",
+ {id:"dips",ct:0,k:/\bdips?\b/,name:"Dips",
   m:{p:["pecs","triceps"],s:["delt_ant"]},
   cues:["Épaules basses, buste légèrement penché","Descends jusqu'à avoir les coudes à 90°","Remonte bras tendus sans verrouiller fort"],
   st:`<line x1="84" y1="82" x2="138" y2="82" class="eq bar"/><line x1="132" y1="82" x2="132" y2="140" class="eq"/>`,
@@ -886,13 +889,13 @@ const EXOS=[
   st:`<line x1="62" y1="110" x2="104" y2="110" class="eq bench"/><line x1="68" y1="110" x2="66" y2="56" class="eq bench"/><line x1="84" y1="110" x2="84" y2="140" class="eq"/>`,
   att:"db",
   f:[{p:[82,106],t:-4,H:[96,58],eb:1,A:[114,134],kb:-1,ft:95},{p:[82,106],t:-4,H:[88,14],eb:1,A:[114,134],kb:-1,ft:95}]},
- {id:"incline",k:/incline/,name:"Développé incliné",face:-1,
+ {id:"incline",ct:0,k:/incline/,name:"Développé incliné",face:-1,
   m:{p:["pecs","delt_ant"],s:["triceps"]},
   cues:["Omoplates serrées contre le banc","Descends la barre vers le haut de la poitrine","Pousse à la verticale, pieds bien au sol"],
   st:`<polyline points="44,112 76,112 118,82" class="eq bench"/><line x1="54" y1="112" x2="54" y2="140" class="eq"/><line x1="100" y1="96" x2="100" y2="140" class="eq"/>`,
   att:"bar",
   f:[{p:[74,105],t:58,H:[108,42],eb:-1,A:[40,138],kb:1,ft:-90},{p:[74,105],t:58,H:[104,82],eb:-1,A:[40,138],kb:1,ft:-90}]},
- {id:"bench",k:/couche|bench/,name:"Développé couché",face:-1,
+ {id:"bench",ct:0,k:/couche|bench/,name:"Développé couché",face:-1,
   m:{p:["pecs"],s:["triceps","delt_ant"]},
   cues:["Omoplates serrées, pieds au sol","Descends la barre jusqu'au milieu de la poitrine","Pousse vers le plafond en expirant"],
   st:`<line x1="50" y1="112" x2="130" y2="112" class="eq bench"/><line x1="60" y1="112" x2="60" y2="140" class="eq"/><line x1="120" y1="112" x2="120" y2="140" class="eq"/>`,
@@ -986,7 +989,7 @@ const EXOS=[
   st:`<polyline points="22,90 58,126 88,126" class="eq bench"/><line x1="70" y1="126" x2="70" y2="140" class="eq"/>`,
   att:"platform",
   f:[{p:[70,120],t:-55,H:[74,122],eb:1,A:[102,92],kb:-1,ft:150},{p:[70,120],t:-55,H:[74,122],eb:1,A:[120,76],kb:-1,ft:150}]},
- {id:"lunge",k:/fente|lunge|bulgare/,name:"Fentes",
+ {id:"lunge",ct:0,k:/fente|lunge|bulgare/,name:"Fentes",
   m:{p:["quads","glutes"],s:["adductors","hams","calves"]},
   cues:["Grand pas en avant, buste droit","Descends jusqu'à ce que le genou arrière frôle le sol","Pousse sur le talon avant pour remonter"],
   att:"db",
@@ -1002,12 +1005,12 @@ const EXOS=[
   cues:["Pointe des pieds sur une marche","Monte le plus haut possible","Descends lentement talons sous la marche"],
   st:`<rect x="104" y="132" width="30" height="8" rx="2" class="eq fill"/>`,
   f:[{p:[100,77],t:0,arm:"hang",eb:-1,A:[100,135],ft:110},{p:[100,66],t:0,arm:"hang",eb:-1,A:[100,124],ft:40}]},
- {id:"rdl",k:/souleve|deadlift|rdl|good morning/,name:"Soulevé de terre (roumain)",
+ {id:"rdl",ct:0,k:/souleve|deadlift|rdl|good morning/,name:"Soulevé de terre (roumain)",
   m:{p:["hams","glutes"],s:["lowback","adductors","forearm"]},
   cues:["Dos plat, barre contre les cuisses","Recule les fesses en penchant le buste","Remonte en poussant les hanches vers l'avant"],
   att:"bar",
   f:[{p:[100,80],t:0,arm:"hang",eb:-1,A:[102,138],kb:-1},{p:[88,84],t:76,arm:"hang",eb:-1,A:[102,138],kb:-1}]},
- {id:"squat",k:/squat/,name:"Squat",
+ {id:"squat",ct:0,k:/squat/,name:"Squat",
   m:{p:["quads","glutes"],s:["adductors","lowback","hams"]},
   cues:["Pieds largeur d'épaules, dos droit","Descends en poussant les fesses en arrière","Genoux dans l'axe des pieds, remonte par les talons"],
   att:"barBack",
@@ -1016,7 +1019,7 @@ const EXOS=[
   m:{p:["abs"],s:["obliques"]},
   cues:["Allongé, genoux pliés, bas du dos au sol","Enroule le haut du dos en soufflant","Redescends doucement sans tirer sur la nuque"],
   f:[{p:[84,134],t:-90,H:[92,124],eb:1,A:[122,138],kb:-1},{p:[84,134],t:-60,H:[110,112],eb:1,A:[122,138],kb:-1}]},
- {id:"plank",k:/gainage|planche|plank/,name:"Gainage",
+ {id:"plank",hold:true,k:/gainage|planche|plank/,name:"Gainage",
   m:{p:["abs"],s:["obliques","delt_ant","glutes"]},
   cues:["Avant-bras sous les épaules","Corps aligné, fessiers et abdos serrés","Respire calmement, tiens la position"],
   f:[{p:[100,124],t:76,H:[160,138],eb:1,A:[44,136],ft:0},{p:[100,122],t:76,H:[160,138],eb:1,A:[44,136],ft:0}]},
@@ -1176,13 +1179,17 @@ function exoMap(x){
   const cls={};for(const g of x.m.s)for(const k of MG[g].map)cls[k]="bm m2";for(const g of x.m.p)for(const k of MG[g].map)cls[k]="bm m1";
   return bodyMap(k=>({cls:cls[k]||(k==="HD"||k==="KN"||k==="NK"?"bm bm0":"bm")}),{small:true,label:"Muscles travaillés : "+x.name});
 }
+/* intensité de la contraction (0 = relâché, 1 = effort max) selon la position de l'animation :
+   ct=0 quand l'effort est à la 1re position clé (ex. pompes en haut), sinon à la 2e ; hold = gainage statique */
+const effort=(x,u)=>x.hold?.6+.4*u:x.ct===0?1-u:u;
 const animFigs=new Set();let figRAF=null;
 function figTick(now){
   const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
   for(const el of [...animFigs]){if(!el.isConnected){animFigs.delete(el);continue}
     const x=EXOS.find(e=>e.id===el.dataset.exo);if(!x)continue;
     const ph=(now/2800)%1;const u=reduce?(ph<.5?0:1):(1-Math.cos(ph*2*Math.PI))/2;
-    el.innerHTML=figSVG(x,u);}
+    el.innerHTML=figSVG(x,u);
+    const box=el.closest(".figbox");if(box)box.style.setProperty("--i",effort(x,u).toFixed(3));}
   figRAF=animFigs.size?requestAnimationFrame(figTick):null;
 }
 /* cadrage : on zoome sur le bonhomme et son matériel (union des 2 positions), sol compris */
