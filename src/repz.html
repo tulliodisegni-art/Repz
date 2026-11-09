@@ -218,6 +218,15 @@ button.prev:active{background:var(--soft)}
 .chart text{fill:var(--muted);font-size:11px;font-family:var(--body)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.wcell{position:relative;display:block;min-width:0}.wcell .cell{width:100%}
+.wcell.up .cell{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);padding-right:14px}
+.wcell i{position:absolute;right:5px;top:50%;transform:translateY(-50%);font-style:normal;font-weight:800;font-size:.8rem;color:var(--gold2);pointer-events:none}
+.warmsets{font-size:.85rem}.warmsets b{font-weight:700;color:var(--ink)}
+.platepop{position:fixed;left:50%;transform:translateX(-50%);width:min(340px,calc(100vw - 32px));z-index:60;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow-lg);display:grid;gap:10px}
+.platepop[hidden]{display:none}
+.plates{display:flex;align-items:center;gap:4px;min-height:56px}
+.plates .pl{display:grid;place-items:center;width:30px;height:var(--h);border-radius:6px;background:linear-gradient(180deg,var(--gold),var(--gold2));color:#0A1330;font-weight:800;font-size:.72rem}
+.rec[data-reck]{cursor:pointer}
 .rec{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:12px 0;border-top:1px solid var(--line)}
 .rec:first-child{border-top:0;padding-top:0}
 .rec .v{font-family:var(--display);font-weight:800;font-size:1.4rem;text-align:right;font-variant-numeric:tabular-nums}
@@ -820,7 +829,8 @@ function lastOf(k){for(const w of workouts){const e=(w.entries||[]).find(e=>e.ke
 // reprend les charges de la dernière fois (les reps restent à remplir, la dernière valeur s'affiche en gris)
 function prefill(e){const last=lastOf(e.key);if(!last)return e;
   while(e.sets.length<last.sets.length)e.sets.push({w:"",r:"",g:"",pr:e.sets.at(-1)?.pr||""});
-  e.sets.forEach((s,j)=>{const ls_=last.sets[j]||last.sets.at(-1);if(s.w===""&&ls_&&ls_.w!=null){s.w=String(ls_.w);s.auto=true}});
+  const up=progressUp(e,last);// objectif atteint la dernière fois : on propose directement la charge au-dessus
+  e.sets.forEach((s,j)=>{const ls_=last.sets[j]||last.sets.at(-1);if(s.w===""&&ls_&&ls_.w!=null){s.w=String(up?Math.round((ls_.w+up)*4)/4:ls_.w);s.auto=true;if(up)s.up=true}});
   if(e.uni===undefined||(!e.uni&&last.uni))e.uni=!!last.uni||e.uni;return e}
 function bestOf(k,list){
   let bw=null,br=null,brAtBw=null;
@@ -847,6 +857,43 @@ function setsTxt(e){return e.sets.map(s=>setTxt(s,e.pdc,e.band,isTime(e.target))
 function parseSets(n){const x=parseInt(n);return isNaN(x)?3:Math.min(Math.max(x,1),10)}
 const tonnage=w=>(w.entries||[]).reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(s.w&&s.r?s.w*s.r:0),0),0);
 // conseil de progression : objectif atteint sur toutes les séries avec un RPE ≤ 8 → on monte
+/* pas de charge à ajouter quand toutes les séries ont atteint le haut de l'objectif sans être à fond */
+/* charge de travail d'un exercice (plus lourde série prévue) et séries de chauffe à 50 / 70 / 85 % */
+/* disques à mettre de chaque côté de la barre */
+const barW=()=>+ls.get("barW",20);
+const PLATES=[25,20,15,10,5,2.5,1.25];
+function platesFor(total,bar){let side=(total-bar)/2;if(side<0)return null;const out=[];for(const p of PLATES){while(side>=p-1e-6){out.push(p);side-=p}}return {out,rest:Math.round(side*100)/100}}
+function showPlates(input){
+  const v=parseFloat(String(input.value||input.placeholder).replace(",","."));if(!v)return;
+  let pop=$("#platePop");if(!pop){pop=document.createElement("div");pop.id="platePop";pop.className="platepop";pop.setAttribute("role","dialog");document.body.appendChild(pop)}
+  const draw=()=>{const bar=barW(),r=platesFor(v,bar);
+    pop.innerHTML=`<div class="row between"><b>${fr(v)} kg à la barre</b><button class="link" data-plateclose aria-label="Fermer">✕</button></div>
+      <div class="seg small" role="group" aria-label="Poids de la barre">${[20,15,10].map(b=>`<button data-bar="${b}" aria-pressed="${bar===b}">Barre ${b} kg</button>`).join("")}</div>
+      ${r?`<div class="plates">${r.out.length?r.out.map(p=>`<span class="pl" style="--h:${18+p*1.6}px">${String(p).replace(".",",")}</span>`).join(""):"<span class=\"hint\">Barre seule</span>"}</div>
+      <p class="hint">De chaque côté${r.rest?` · il manque ${fr(r.rest*2)} kg au total`:""}</p>`:`<p class="hint">Moins lourd que la barre.</p>`}`};
+  draw();const b=input.getBoundingClientRect();pop.style.top=Math.min(innerHeight-190,b.bottom+8)+"px";pop.hidden=false;
+  pop.onclick=ev=>{const t=ev.target.closest("[data-bar],[data-plateclose]");if(!t)return;if(t.dataset.bar){ls.set("barW",+t.dataset.bar);draw()}else pop.hidden=true};
+}
+{let lpT=null;
+  document.addEventListener("pointerdown",ev=>{const el=ev.target.closest('input.cell[data-f="w"]');if(!el)return;lpT=setTimeout(()=>{lpT=null;el.blur();showPlates(el)},550)});
+  for(const t of ["pointerup","pointercancel","pointerleave","scroll"])document.addEventListener(t,()=>{clearTimeout(lpT);lpT=null},true);
+  document.addEventListener("click",ev=>{const p=$("#platePop");if(p&&!p.hidden&&!p.contains(ev.target)&&!ev.target.closest('input.cell[data-f="w"]'))p.hidden=true});
+}
+function workW(e){return Math.max(0,...e.sets.map(s=>parseFloat(String(s.w).replace(",","."))||0))}
+const r25=v=>Math.round(v/2.5)*2.5;
+function warmupSetsHTML(e){const w=workW(e);if(w<20)return "";
+  const bar=e.uni?0:barW();const sets=[[.5,8],[.7,5],[.85,2]].map(([k,r])=>[Math.max(bar,r25(w*k)),r]).filter(([v],i,a)=>v<w&&(i===0||v>a[i-1][0]));
+  if(!sets.length)return "";
+  return `<div class="last warmsets"><span>Chauffe avant ${fr(w)} kg : ${sets.map(([v,r])=>`<b class="num">${fr(v)} × ${r}</b>`).join(" · ")}</span></div>`}
+function progressUp(e,last){
+  if(!last||!last.sets.length||isTime(e.target)||e.pdc||last.pdc)return 0;
+  const part=(String(e.target).split("·")[0].split("×")[1]||"").trim(),m=part.match(/^(\d+)(?:\s*-\s*(\d+))?$/);if(!m)return 0;
+  const top=+(m[2]||m[1]);
+  if(!last.sets.every(s=>(s.r!=null&&s.r>=top)||(s.g!=null&&s.d!=null&&Math.min(s.g,s.d)>=top)))return 0;
+  if(last.rpe!=null&&last.rpe>8)return 0;
+  const w=Math.max(...last.sets.map(s=>s.w||0));if(!w)return 0;
+  return isUni(e.name)||w<20?1:2.5;// petites charges et haltères : +1 kg ; barres et machines : +2,5 kg
+}
 function progressTip(e,last){
   if(!last||!last.sets.length||isTime(e.target))return "";
   const part=(String(e.target).split("·")[0].split("×")[1]||"").trim();
@@ -856,7 +903,8 @@ function progressTip(e,last){
   const easy=last.rpe==null||last.rpe<=8;
   if(!allHit||!easy)return "";
   const ws=last.sets.map(s=>s.w).filter(v=>v!=null);
-  if(ws.length)return "Objectif atteint la dernière fois : essaie "+fr(Math.max(...ws)+2.5)+" kg";
+  const up=progressUp(e,last);
+  if(ws.length&&up)return "Objectif atteint la dernière fois : charge montée de "+fr(up)+" kg";
   return e.pdc?"Objectif atteint la dernière fois : ajoute du lest ou 1 rep":"";
 }
 
@@ -1277,16 +1325,24 @@ function exoMap(x){
 /* intensité de la contraction (0 = relâché, 1 = effort max) selon la position de l'animation :
    ct=0 quand l'effort est à la 1re position clé (ex. pompes en haut), sinon à la 2e ; hold = gainage statique */
 const effort=(x,u)=>x.hold?.6+.4*u:x.ct===0?1-u:u;
-const animFigs=new Set();let figRAF=null;
+const animFigs=new Set(),figVis=new WeakMap();let figRAF=null,figLast=0;
+// économie de batterie : on ne redessine que les schémas visibles, 30 fois par seconde, et rien quand l'appli est en arrière-plan
+const figIO="IntersectionObserver" in window?new IntersectionObserver(es=>{for(const e of es)figVis.set(e.target,e.isIntersecting);if(!figRAF&&animFigs.size)figRAF=requestAnimationFrame(figTick)}):null;
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!figRAF&&animFigs.size)figRAF=requestAnimationFrame(figTick)});
 function figTick(now){
+  if(document.hidden){figRAF=null;return}
+  if(now-figLast<32){figRAF=requestAnimationFrame(figTick);return}
+  figLast=now;
   const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
-  for(const el of [...animFigs]){if(!el.isConnected){animFigs.delete(el);continue}
+  for(const el of [...animFigs]){if(!el.isConnected){animFigs.delete(el);if(figIO)figIO.unobserve(el);continue}
+    if(figIO&&figVis.get(el)===false)continue;
     const x=EXOS.find(e=>e.id===el.dataset.exo);if(!x)continue;
     const ph=(now/2800)%1;const u=reduce?(ph<.5?0:1):(1-Math.cos(ph*2*Math.PI))/2;
     if(!el.dataset.pid)el.dataset.pid="f"+Math.random().toString(36).slice(2,7);
     el.innerHTML=figSVG(x,u,el.dataset.pid);
     const box=el.closest(".figbox");if(box)box.style.setProperty("--i",effort(x,u).toFixed(3));}
-  figRAF=animFigs.size?requestAnimationFrame(figTick):null;
+  const anyVis=[...animFigs].some(el=>!figIO||figVis.get(el)!==false);
+  figRAF=animFigs.size&&anyVis?requestAnimationFrame(figTick):null;
 }
 /* cadrage : on zoome sur le bonhomme et son matériel (union des 2 positions), sol compris */
 const FIGVB={};
@@ -1298,7 +1354,7 @@ function fitFig(el,x){
     FIGVB[x.id]=`${x0.toFixed(1)} ${y0.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`;el.innerHTML=figSVG(x,0)}
   el.setAttribute("viewBox",FIGVB[x.id]);
 }
-function startFigs(root){(root||document).querySelectorAll("svg.fig[data-exo]").forEach(el=>{const x=EXOS.find(e=>e.id===el.dataset.exo);if(x)fitFig(el,x);animFigs.add(el)});if(!figRAF&&animFigs.size)figRAF=requestAnimationFrame(figTick)}
+function startFigs(root){(root||document).querySelectorAll("svg.fig[data-exo]").forEach(el=>{const x=EXOS.find(e=>e.id===el.dataset.exo);if(x)fitFig(el,x);if(!animFigs.has(el)&&figIO)figIO.observe(el);animFigs.add(el)});if(!figRAF&&animFigs.size)figRAF=requestAnimationFrame(figTick)}
 function figBlock(x){
   const lab=g=>MG[g].n;
   return `<div class="figbox"><svg class="fig" data-exo="${x.id}" viewBox="0 -16 200 164" role="img" aria-label="Mouvement : ${esc(x.name)}">${figSVG(x,0)}</svg>
@@ -1367,6 +1423,7 @@ function renderSession(){
     </details></section>`;
   h+=`<section class="step">${stepHead(2,"Exercices",draft.entries.length+" exos")}
     <p class="hint">Les chiffres en gris sont l'objectif ou ta dernière séance. <b>Effort</b> : à quel point la série était dure, sur 10. 6 = facile, il te restait 4 reps · 8 = dur, encore 2 · 10 = à fond, impossible d'en faire une de plus.</p>`;
+  const firstHeavy=draft.entries.findIndex(e=>!e.pdc&&!isTime(e.target)&&workW(e)>=20);
   draft.entries.forEach((e,i)=>{
     const last=lastOf(e.key), time=isTime(e.target), tip=progressTip(e,last);
     if(e.uni===undefined)e.uni=isUni(e.name);
@@ -1385,6 +1442,7 @@ function renderSession(){
       ${last&&last.pain?`<p class="consigne warnline">⚠ La dernière fois : gêne ${PAIN[last.pain.lvl]} ${last.pain.zone?"("+esc(last.pain.zone.toLowerCase())+")":""}. Allège ou change d'exo si ça revient.</p>`:""}
       <div class="last num">${last?`<span>Séance précédente : <b style="color:var(--ink)">${TYPES[last.type]?.label||""} · ${fmtDate(last.date)}</b>${last.rpe?" · "+effTxt(last.rpe):""}</span> <button class="link" data-copy="${i}">Tout reprendre</button>`:"Première fois dans le carnet"}</div>
       ${tip?`<div class="last"><span class="tip">↗ ${esc(tip)}</span></div>`:""}
+      ${i===firstHeavy?warmupSetsHTML(e):""}
       <div class="sets ${e.uni?"uni":""}"><div class="sethead"><span>Série</span><span>Précédent</span><span>${e.pdc?"+kg":"kg"}</span>${e.uni?"<span>G</span><span>D</span>":`<span>${time?"sec":"reps"}</span>`}<span aria-hidden="true">✓</span></div>
       ${e.sets.map((s,j)=>{
         const ph=last&&last.sets[j]?last.sets[j]:null;
@@ -1392,7 +1450,7 @@ function renderSession(){
         const rp=v=>esc(v??(s.pr||""));
         return `<div class="setrow ${setDone(e,s)?"done":""}"><span class="n num">${j+1}</span>
         ${pv?`<button class="prev num" data-prevfill="${i}_${j}" aria-label="Reprendre ${esc(pv)}">${esc(pv)}</button>`:`<span class="prev none">—</span>`}
-        <input class="cell num" id="w${i}_${j}" inputmode="decimal" aria-label="${e.pdc?"Lest":"Charge"} série ${j+1}" data-i="${i}" data-j="${j}" data-f="w" value="${esc(s.w)}" placeholder="${esc(ph?.w??(e.pdc?"PDC":"kg"))}">
+        <span class="wcell ${s.up?"up":""}"><input class="cell num" id="w${i}_${j}" inputmode="decimal" aria-label="${e.pdc?"Lest":"Charge"} série ${j+1}${s.up?", charge augmentée":""}" data-i="${i}" data-j="${j}" data-f="w" value="${esc(s.w)}" placeholder="${esc(ph?.w??(e.pdc?"PDC":"kg"))}">${s.up?`<i aria-hidden="true">↑</i>`:""}</span>
         ${e.uni?`<input class="cell num" id="g${i}_${j}" inputmode="numeric" aria-label="Reps côté gauche série ${j+1}" data-i="${i}" data-j="${j}" data-f="g" value="${esc(s.g??"")}" placeholder="${rp(ph?.g??ph?.r)}">
         <input class="cell num" id="r${i}_${j}" inputmode="numeric" aria-label="Reps côté droit série ${j+1}" data-i="${i}" data-j="${j}" data-f="r" value="${esc(s.r)}" placeholder="${rp(ph?.d??ph?.r)}">`:
         `<input class="cell num" id="r${i}_${j}" inputmode="numeric" aria-label="${time?"Secondes":"Répétitions"} série ${j+1}" data-i="${i}" data-j="${j}" data-f="r" value="${esc(s.r)}" placeholder="${rp(ph?.r)}">`}
@@ -1457,7 +1515,7 @@ function checkSet(i,j,fromPrev){
   const num=v=>{const n=parseInt(String(v??""));return isNaN(n)?"":String(n)};
   if(setDone(e,s)&&!fromPrev){s.r="";if(e.uni)s.g="";}
   else{
-    if(fromPrev){if(ph.w!=null)s.w=String(ph.w);delete s.auto}
+    if(fromPrev){if(ph.w!=null)s.w=String(ph.w);delete s.auto;delete s.up}
     if(s.w===""&&ph.w!=null)s.w=String(ph.w);
     if(e.uni){if(s.g===""||s.g==null)s.g=num(ph.g??ph.r)||num(s.pr);if(s.r==="")s.r=num(ph.d??ph.r)||num(s.pr)}
     else if(s.r==="")s.r=num(ph.r)||num(s.pr);
@@ -1475,7 +1533,7 @@ function updateProgress(i,j){
   if(p)p.textContent=done+" / "+total;if(b)b.style.setProperty("--p",(total?Math.round(done/total*100):0)+"%");
 }
 function onField(x){
-  if(x.dataset.f){const st=draft.entries[x.dataset.i].sets[x.dataset.j];st[x.dataset.f]=x.value;if(x.dataset.f==="w")delete st.auto;if(x.dataset.f!=="w")updateProgress(+x.dataset.i,+x.dataset.j)}
+  if(x.dataset.f){const st=draft.entries[x.dataset.i].sets[x.dataset.j];st[x.dataset.f]=x.value;if(x.dataset.f==="w"){delete st.auto;if(st.up){delete st.up;const c=x.closest(".wcell");if(c){c.classList.remove("up");c.querySelector("i")?.remove()}}}if(x.dataset.f!=="w")updateProgress(+x.dataset.i,+x.dataset.j)}
   else if(x.dataset.uni!=null){if(x.type==="checkbox"&&arguments[1]!=="input"){draft.entries[x.dataset.uni].uni=x.checked;save();renderSession()}return}
   else if(x.dataset.rpe!=null)draft.entries[x.dataset.rpe].rpe=x.value;
   else if(x.dataset.pain!=null){const e=draft.entries[x.dataset.pain],had=!!e.pain;e.pain=x.value;if(e.pain&&!e.painZone)e.painZone=ZONES[0];save();if(had!==!!e.pain)renderSession();return}
@@ -1512,7 +1570,7 @@ $("#sessionBody").addEventListener("click",e=>{
   else if(b.dataset.edx!=null){const i=+b.dataset.edx;edOpen=edOpen===i?-1:i;renderSession();const n=$("#exName"+i);if(n)n.focus()}
   else if(b.dataset.excancel){edOpen=-1;renderSession()}
   else if(b.dataset.exok!=null){const i=+b.dataset.exok,e2=draft.entries[i];const n=$("#exName"+i).value.trim();
-    if(n&&n!==e2.name){e2.name=n;e2.key=key(n);e2.sets.forEach(s=>{if(s.auto){s.w="";delete s.auto}});prefill(e2)}
+    if(n&&n!==e2.name){e2.name=n;e2.key=key(n);e2.sets.forEach(s=>{if(s.auto){s.w="";delete s.auto;delete s.up}});prefill(e2)}
     e2.uni=$("#exUni"+i).checked;e2.pdc=$("#exPdc"+i).checked;e2.target=$("#exTgt"+i).value.trim();
     edOpen=-1;save();renderSession();updateProgress(i,0)}
   else if(b.dataset.mv!=null){const i=+b.dataset.i,j=i+ +b.dataset.mv;if(j<0||j>=draft.entries.length)return;
@@ -1724,6 +1782,14 @@ async function connectSample(){
 }
 
 /* ---------- en-tête ---------- */
+/* conseil du jour : séance faite aujourd'hui → récupération ; sinon la séance la plus en retard dans la rotation */
+function todayAdvice(){
+  if(!workouts.length)return "";
+  const today=todayISO();if(workouts.some(w=>w.date===today))return "Séance faite aujourd'hui. Récupère bien.";
+  const t=suggestType(),ld=lastDateOf(t);
+  const days=ld?Math.round((new Date(today)-new Date(ld))/864e5):null;
+  return `Aujourd'hui : ${TYPES[t].label}`+(days==null?", pas encore faite":days>=2?`, rien depuis ${days} jours`:"");
+}
 function renderWeek(){
   const n=workouts.filter(w=>w.date>=weekStart()).length;
   $("#weekLbl").textContent="semaine";
@@ -1733,7 +1799,7 @@ function renderWeek(){
   $("#todayLbl").innerHTML=`<span class="sync ${mode==="db"?"on":""}">${d}</span>`;
   const h=new Date().getHours();$("#hello").textContent=(h<5?"Bonne nuit":h<12?"Bonjour":h<18?"Salut":"Bonsoir")+" "+((window.REPZ&&window.REPZ.name&&window.REPZ.name())||"Tullio");
   const MOTTOS=["Chaque série compte.","Une rep de plus que la dernière fois.","La régularité bat l'intensité.","Échauffe-toi bien, grimpe mieux.","Le plus dur, c'est de venir. Tu es là.","Technique d'abord, charge ensuite."];
-  $("#motto").textContent=n>=WEEK_GOAL?"Objectif de la semaine atteint, bravo !":MOTTOS[(new Date().getDate()+n)%MOTTOS.length];
+  $("#motto").textContent=todayAdvice()||(n>=WEEK_GOAL?"Objectif de la semaine atteint, bravo !":MOTTOS[(new Date().getDate()+n)%MOTTOS.length]);
 }
 
 /* ---------- graphiques ---------- */
@@ -1778,7 +1844,8 @@ function seriesFor(k,met){
 function renderEvo(){
   document.querySelectorAll("#evoSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.evo===evoPart));
   for(const p of ["force","corps","hist"])$("#evo-"+p).hidden=p!==evoPart;
-  renderForce();renderBody();renderHist();renderPhotos();
+  if($("#tab-evolution").hidden)return;// rien à calculer tant que l'onglet est fermé
+  if(evoPart==="force")renderForce();else if(evoPart==="corps"){renderBody();renderPhotos()}else renderHist();
 }
 document.querySelectorAll("#evoSeg button").forEach(b=>b.addEventListener("click",()=>{evoPart=b.dataset.evo;ls.set("evo",evoPart);renderEvo()}));
 
@@ -1885,7 +1952,7 @@ function renderForce(){
     const fb=bestOf(k,[first]);const firstVal=useKg?fb.bw:fb.br;
     let date=null;
     for(const w of chrono){const e=w.entries.find(e=>e.key===k);if(e&&e.sets.some(s=>useKg?(s.w===b.bw&&s.r===b.brAtBw):s.r===b.br)){date=w.date;break}}
-    recs.push({name:info.name,val,unit:useKg?"kg":"reps",sub:useKg&&b.brAtBw?"× "+b.brAtBw:(info.pdc?"au poids du corps":""),date:date||first.date,gain:firstVal!=null?val-firstVal:0});
+    recs.push({k,name:info.name,val,unit:useKg?"kg":"reps",sub:useKg&&b.brAtBw?"× "+b.brAtBw:(info.pdc?"au poids du corps":""),date:date||first.date,gain:firstVal!=null?val-firstVal:0});
   }
   const improved=recs.filter(r=>r.gain>0).length;
   const firstDate=workouts.length?workouts.at(-1).date:null;
@@ -1896,13 +1963,17 @@ function renderForce(){
   recs.sort((a,b)=>a.date<b.date?1:-1);
   const recent=d=>d>=new Date(Date.now()-14*864e5).toISOString().slice(0,10);
   $("#recCount").textContent=recs.length?recs.length+" exercices":"";
-  $("#records").innerHTML=recs.length?recs.map(r=>`<div class="rec"><span><b>${esc(r.name)}</b> ${recent(r.date)?'<span class="badge pr">Nouveau</span>':""}</span><span class="v">${fr(r.val)} <span class="label">${r.unit}</span></span>
+  $("#records").innerHTML=recs.length?recs.map(r=>`<div class="rec" role="button" tabindex="0" data-reck="${esc(r.k)}" aria-label="Voir la courbe : ${esc(r.name)}"><span><b>${esc(r.name)}</b> ${recent(r.date)?'<span class="badge pr">Nouveau</span>':""}</span><span class="v">${fr(r.val)} <span class="label">${r.unit}</span></span>
     <span class="s">${fmtDate(r.date)}${r.sub?" · "+esc(r.sub):""}</span><span class="s" style="text-align:right">${r.gain>0?`<span class="upc">+${fr(r.gain)} ${r.unit}</span> depuis le début`:"—"}</span></div>`).join(""):`<p class="empty">Tes records s'afficheront ici.</p>`;
   const sel=$("#progSel"),prev=sel.value||ls.get("ex","");
   sel.innerHTML=exs.size?[...exs].map(([k,v])=>`<option value="${esc(k)}">${esc(v.name)}</option>`).join(""):`<option value="">Aucun exercice noté</option>`;
   if(exs.has(prev))sel.value=prev;
   renderExChart();renderVolume();renderBaseline();
 }
+// toucher un record ouvre la courbe de l'exercice (force estimée pour les charges)
+document.addEventListener("click",ev=>{const r=ev.target.closest("[data-reck]");if(!r)return;const sel=$("#progSel");if(!sel)return;
+  sel.value=r.dataset.reck;const hasKg=workouts.some(w=>(w.entries||[]).some(e=>e.key===sel.value&&e.sets.some(s=>s.w!=null)));metric=hasKg?"1rm":"reps";
+  renderExChart();sel.closest(".card").scrollIntoView({behavior:"smooth",block:"start"})});
 const METRICS={kg:[["max","Charge max"],["1rm","1RM estimé"],["vol","Volume"]],pdc:[["reps","Meilleure série"],["total","Reps totales"]]};
 function renderExChart(){
   const k=$("#progSel").value,box=$("#progChart");if(k)ls.set("ex",k);
