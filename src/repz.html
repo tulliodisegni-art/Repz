@@ -1505,7 +1505,7 @@ function heroHTML(sug,ld){
   const ph=phaseInfo();
   const phase=ph.goal?`<div class="phase"><span>Phase ${ph.n} · ${ph.name} · ${ph.done>=ph.goal?"terminée":`séance ${ph.done+1}/${ph.goal}`}</span><span class="seg3">${Array.from({length:5},(_,i)=>`<i class="${i<Math.round(ph.done/ph.goal*5)?"on":""}"></i>`).join("")}</span></div>`:`<div class="phase"><span>Phase ${ph.n} · ${ph.name}</span></div>`;
   const kicker=draft.test?(ck.sessStart?"Séance en cours":"Fin de phase"):draft.planId?"Prévue par ton coach":ck.sessStart?"Séance en cours":t===sug?"Conseillée aujourd'hui":"Séance du jour";
-  const title=draft.test?"Test des max":draft.coach?draft.coach.titre:TYPES[t].label;
+  const title=draft.test?"Séance PR":draft.coach?draft.coach.titre:TYPES[t].label;
   const meta=draft.entries.length+" exercices · "+total+" séries"+(ld?" · dernière fois "+fmtDate(ld):"");
   const other=t!==sug&&!draft.planId&&!draft.test&&!ck.sessStart?`<div class="tipline">Celle qui t'attend le plus : <b>${TYPES[sug].label}</b></div>`:"";
   const action=ck.sessStart?"":ck.warmStart?`<button class="btn" id="startSess">Échauffement fini · c'est parti</button>`:`<button class="btn" id="startWarm">Commencer l'échauffement</button>`;
@@ -1668,12 +1668,12 @@ async function saveSession(btn){
 
 /* ---------- séance prévue par le coach ---------- */
 function pendingPlans(){return plans.filter(p=>p.status!=="done").sort((a,b)=>a.date<b.date?-1:1)}
-/* ---------- séance test des max (fin de phase) : on choisit ses exercices, 2 séries chacun ---------- */
+/* ---------- séance PR (fin de phase) : on choisit ses exercices, 2 séries chacun ---------- */
 function allExercises(){const seen=new Map();for(const t of GYM)for(const ex of program.sessions[t]){const k=key(ex.name);if(!seen.has(k))seen.set(k,{...ex,t})}return [...seen.values()]}
 function phaseGoalReached(){const ph=phaseInfo();return !!ph.goal&&ph.done>=ph.goal}
 function testDraft(names){
   const all=new Map(allExercises().map(x=>[key(x.name),x]));
-  const d=newDraft("full");d.titre="Test des max";d.test=true;
+  const d=newDraft("full");d.titre="Séance PR";d.test=true;
   d.entries=names.map(n=>{const x=all.get(key(n))||{name:n,pdc:false};
     const e={key:key(x.name),name:x.name,target:x.pdc?"2 × max reps":"2 × charge max",pdc:!!x.pdc,band:false,rpe:"",uni:isUni(x.name),sets:[{w:"",r:"",g:""},{w:"",r:"",g:""}]};
     prefill(e);e.sets=e.sets.slice(0,2);e.sets.forEach(s=>{delete s.up});return e});
@@ -1681,11 +1681,11 @@ function testDraft(names){
 function openTestPicker(){
   let ov=$("#testPick");if(ov)ov.remove();ov=document.createElement("div");ov.id="testPick";ov.className="sheetov";
   const ex=allExercises(),byT=GYM.map(t=>[t,ex.filter(x=>x.t===t)]).filter(([,l])=>l.length);
-  ov.innerHTML=`<div class="sheet" role="dialog" aria-label="Séance test des max"><div class="row between"><h2>Test des max</h2><button class="link" data-tclose aria-label="Fermer">✕</button></div>
-    <p class="hint">Coche les exercices à tester. Chacun aura 2 séries (tu peux en enlever une) : monte la charge jusqu'à ton max, ou fais le max de répétitions au poids du corps.</p>
+  ov.innerHTML=`<div class="sheet" role="dialog" aria-label="Séance PR"><div class="row between"><h2>Séance PR</h2><button class="link" data-tclose aria-label="Fermer">✕</button></div>
+    <p class="hint">Coche les exercices où tu veux battre ton record. Chacun aura 2 séries (tu peux en enlever une) : monte la charge jusqu'à ton max, ou fais le max de répétitions au poids du corps.</p>
     <div class="row" style="gap:6px">${byT.map(([t])=>`<button class="chip" data-tall="${t}" style="--tc:${TYPES[t].c}">Tout ${TYPES[t].label}</button>`).join("")}</div>
     <div class="tlist">${byT.map(([t,l])=>`<h3 style="color:${TYPES[t].c}">${TYPES[t].label}</h3>${l.map(x=>`<label class="tpick"><input type="checkbox" value="${esc(x.name)}" data-tt="${t}"><span>${esc(x.name)}</span>${x.pdc?`<small>poids du corps</small>`:""}</label>`).join("")}`).join("")}</div>
-    <div class="row between"><span class="hint" id="tcount">0 exercice</span><button class="btn" id="tgo" disabled>Lancer le test</button></div></div>`;
+    <div class="row between"><span class="hint" id="tcount">0 exercice</span><button class="btn" id="tgo" disabled>Lancer la séance PR</button></div></div>`;
   document.body.appendChild(ov);
   const upd=()=>{const n=ov.querySelectorAll("input:checked").length;$("#tcount").textContent=n+" exercice"+(n>1?"s":"");$("#tgo").disabled=!n};
   ov.addEventListener("change",upd);
@@ -1699,8 +1699,8 @@ function openTestPicker(){
 function renderPlanBanner(){
   const el=$("#planBanner");if(role!=="athlete"){el.innerHTML="";return}
   if(phaseGoalReached()&&!(draft&&draft.test)&&!pendingPlans().some(p=>p.date<=todayISO())){const ph=phaseInfo();
-    el.innerHTML=`<div class="card accent"><span class="label">Phase ${ph.n} terminée · ${ph.goal} / ${ph.goal}</span><h2>C'est le moment de tester tes max</h2>
-      <p class="hint">Choisis les exercices que tu veux tester, 2 séries chacun. Ensuite, passe à la phase ${ph.n+1} dans Programme.</p><button class="btn" data-testmax>Séance test des max</button></div>`;return}
+    el.innerHTML=`<div class="card accent"><span class="label">Phase ${ph.n} terminée · ${ph.goal} / ${ph.goal}</span><h2>C'est le moment de battre tes PR</h2>
+      <p class="hint">Choisis les exercices où tu veux battre ton record, 2 séries chacun. Ensuite, passe à la phase ${ph.n+1} dans Programme.</p><button class="btn" data-testmax>Séance PR</button></div>`;return}
   const p=pendingPlans().find(p=>p.date<=todayISO())||null;
   if(!p||(draft&&draft.planId===p.id)){el.innerHTML="";return}
   el.innerHTML=`<div class="card accent"><div class="row between"><span class="label">Prévu par ton coach · ${fmtDate(p.date)}</span><span class="tag" style="--tc:${TYPES[p.type]?.c}">${TYPES[p.type]?.label||""}</span></div>
@@ -1827,7 +1827,7 @@ async function connectSample(){
 function todayAdvice(){
   if(!workouts.length)return "";
   const today=todayISO();if(workouts.some(w=>w.date===today))return "Séance faite aujourd'hui. Récupère bien.";
-  if(phaseGoalReached())return "Fin de phase : c'est le moment de tester tes max.";
+  if(phaseGoalReached())return "Fin de phase : c'est le jour des PR.";
   const t=suggestType(),ld=lastDateOf(t);
   const days=ld?Math.round((new Date(today)-new Date(ld))/864e5):null;
   return `Aujourd'hui : ${TYPES[t].label}`+(days==null?", pas encore faite":days>=2?`, rien depuis ${days} jours`:"");
@@ -2287,7 +2287,7 @@ function renderPhase(){
     <div class="phases">${PHASES.map(p=>`<div class="ph ${p.n===ph.n?"cur":p.n<ph.n?"done":""}"><b class="n">${p.n}</b><div><h3>${p.name}${p.goal?` · ${p.goal} séances`:""}</h3><p class="hint">${p.desc}${p.n===ph.n&&p.goal?` <b>${Math.min(ph.done,p.goal)} / ${p.goal} faites.</b>`:""}</p></div></div>`).join("")}</div>
     <div class="row" style="align-items:flex-end"><div class="inp" style="flex:1;min-width:150px"><label class="label" for="phaseDone">Séances déjà faites en phase ${ph.n}</label><input id="phaseDone" type="number" inputmode="numeric" min="0" max="200" value="${ph.done}"></div><button class="btn small ghost" id="phaseDoneSave">Corriger</button></div>
     <p class="hint" style="margin-top:-4px">Compte aussi les séances faites avant le carnet. Les nouvelles séances enregistrées s'ajoutent toutes seules.</p>
-    ${ph.goal&&ph.done>=ph.goal?`<div class="row"><button class="btn small" data-testmax>Séance test des max</button></div>`:""}
+    ${ph.goal&&ph.done>=ph.goal?`<div class="row"><button class="btn small" data-testmax>Séance PR</button></div>`:""}
     <div class="row">${ph.n<3?`<button class="btn small" id="phaseNext">Passer à la phase ${ph.n+1}</button>`:""}${ph.n>1?`<button class="link" id="phasePrev" style="color:var(--muted)">Revenir à la phase ${ph.n-1}</button>`:""}</div>`;
 }
 $("#phaseCard").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;
