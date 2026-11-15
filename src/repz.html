@@ -218,6 +218,11 @@ button.prev:active{background:var(--soft)}
 .chart text{fill:var(--muted);font-size:11px;font-family:var(--body)}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.sheetov{position:fixed;inset:0;z-index:70;background:rgba(10,19,48,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);color:var(--ink);width:min(560px,100%);max-height:88vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:12px;box-shadow:var(--shadow-lg)}
+.tlist{display:grid;gap:4px}.tlist h3{margin:10px 0 2px;font-family:var(--display);text-transform:uppercase;letter-spacing:.05em;font-size:.95rem}
+.tpick{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:12px}
+.tpick input{width:20px;height:20px;accent-color:var(--gold2)}.tpick span{flex:1}.tpick small{color:var(--muted)}
 .wcell{position:relative;display:block;min-width:0}.wcell .cell{width:100%}
 .wcell.up .cell{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);padding-right:14px}
 .wcell i{position:absolute;right:5px;top:50%;transform:translateY(-50%);font-style:normal;font-weight:800;font-size:.8rem;color:var(--gold2);pointer-events:none}
@@ -805,6 +810,8 @@ async function connect(){
     applyRole();
     if(role==="athlete"&&id){const got=await pullDrafts();if(got&&draft){current=draft.type;selectType(draft.type,true)}else pushDrafts()}
     if(draft&&!draft.coach&&!draftTouched())draft=newDraft(draft.type);
+    // chrono lancé il y a plus de 12 h sans aucune série notée : séance oubliée, on repart à zéro
+    if(draft&&!draft.editId&&!draft.past&&Date.now()-(draft.ts||0)>12*36e5&&!draft.entries.some(e=>e.sets.some(x=>x.r!==""||(x.g??"")!==""))){draft=newDraft(draft.type);delete stash[draft.type];save()}
     renderAll(true);
   }catch(e){}
 }
@@ -1496,11 +1503,11 @@ function heroHTML(sug,ld){
       <button class="btn" id="offCancel">Annuler et revenir à ma séance</button></div>`;
   }
   const ph=phaseInfo();
-  const phase=ph.goal?`<div class="phase"><span>Phase ${ph.n} · ${ph.name} · séance ${Math.min(ph.done+1,ph.goal)}/${ph.goal}</span><span class="seg3">${Array.from({length:5},(_,i)=>`<i class="${i<Math.round(ph.done/ph.goal*5)?"on":""}"></i>`).join("")}</span></div>`:`<div class="phase"><span>Phase ${ph.n} · ${ph.name}</span></div>`;
-  const kicker=draft.planId?"Prévue par ton coach":ck.sessStart?"Séance en cours":t===sug?"Conseillée aujourd'hui":"Séance du jour";
-  const title=draft.coach?draft.coach.titre:TYPES[t].label;
+  const phase=ph.goal?`<div class="phase"><span>Phase ${ph.n} · ${ph.name} · ${ph.done>=ph.goal?"terminée":`séance ${ph.done+1}/${ph.goal}`}</span><span class="seg3">${Array.from({length:5},(_,i)=>`<i class="${i<Math.round(ph.done/ph.goal*5)?"on":""}"></i>`).join("")}</span></div>`:`<div class="phase"><span>Phase ${ph.n} · ${ph.name}</span></div>`;
+  const kicker=draft.test?(ck.sessStart?"Séance en cours":"Fin de phase"):draft.planId?"Prévue par ton coach":ck.sessStart?"Séance en cours":t===sug?"Conseillée aujourd'hui":"Séance du jour";
+  const title=draft.test?"Test des max":draft.coach?draft.coach.titre:TYPES[t].label;
   const meta=draft.entries.length+" exercices · "+total+" séries"+(ld?" · dernière fois "+fmtDate(ld):"");
-  const other=t!==sug&&!draft.planId&&!ck.sessStart?`<div class="tipline">Celle qui t'attend le plus : <b>${TYPES[sug].label}</b></div>`:"";
+  const other=t!==sug&&!draft.planId&&!draft.test&&!ck.sessStart?`<div class="tipline">Celle qui t'attend le plus : <b>${TYPES[sug].label}</b></div>`:"";
   const action=ck.sessStart?"":ck.warmStart?`<button class="btn" id="startSess">Échauffement fini · c'est parti</button>`:`<button class="btn" id="startWarm">Commencer l'échauffement</button>`;
   const fix=ck.sessStart?"":`<button class="link" id="heroEdit" style="color:inherit;position:relative;align-self:center">Déjà commencé ? Régler le chrono à la main</button>`;
   return `<div class="hero">${PLATE_BIG}<span class="kicker">${kicker}</span>${phase}
@@ -1599,7 +1606,8 @@ async function pushDrafts(){if(mode!=="db"||!uid||role!=="athlete"||!pulled)retu
 async function pullDrafts(){
   try{const s=await draftDoc().get();if(!s.exists)return false;const o=JSON.parse(s.data().json||"{}");
     let changed=false;if((o.cancelTs||0)>cancelTs){cancelTs=o.cancelTs;ls.set("cancelTs",cancelTs)}
-    const cands=[o.draft,o.lastTouched,lastTouched].filter(d=>d&&GYM.includes(d.type)&&d.warm&&touched(d)&&(d.ts||0)>cancelTs).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    const fresh=d=>Date.now()-(d.ts||0)<12*36e5;// une séance en cours de plus de 12 h est périmée
+    const cands=[o.draft,o.lastTouched,lastTouched].filter(d=>d&&GYM.includes(d.type)&&d.warm&&touched(d)&&(d.ts||0)>cancelTs&&fresh(d)).sort((a,b)=>(b.ts||0)-(a.ts||0));
     const best=cands[0];
     if(best&&(!touched(draft)||(best.ts||0)>(draft.ts||0))&&best!==draft){draft=best;changed=true}
     if(o.lastTouched&&(!lastTouched||(o.lastTouched.ts||0)>(lastTouched.ts||0))){lastTouched=o.lastTouched;ls.set("lastTouched",lastTouched)}
@@ -1651,22 +1659,55 @@ async function saveSession(btn){
   const prev=workouts.find(x=>x.type===current);
   try{const id=await addWorkout(w);
     if(mode==="db"&&draft.planId){try{await col("plans").doc(draft.planId).update({status:"done",workoutId:id})}catch{}}
-    delete stash[current];lastTouched=null;ls.set("lastTouched",null);draft=null;ls.set("draft",null);stopRest(true);releaseWake();selectType(current);window.scrollTo(0,0);renderPlanBanner();
+    delete stash[current];lastTouched=null;ls.set("lastTouched",null);draft=null;ls.set("draft",null);
+    // la séance enregistrée ne doit plus jamais revenir depuis la sauvegarde en ligne
+    cancelTs=Date.now();ls.set("cancelTs",cancelTs);pushDrafts();stopRest(true);releaseWake();selectType(current);window.scrollTo(0,0);renderPlanBanner();
     lastSaved=w;$("#suggest").innerHTML=summaryHTML(w,prs,prev);
   }catch(e){msg.className="msg err";msg.textContent="L'enregistrement a échoué. Vérifie ta connexion puis réessaie.";btn.disabled=false}
 }
 
 /* ---------- séance prévue par le coach ---------- */
 function pendingPlans(){return plans.filter(p=>p.status!=="done").sort((a,b)=>a.date<b.date?-1:1)}
+/* ---------- séance test des max (fin de phase) : on choisit ses exercices, 2 séries chacun ---------- */
+function allExercises(){const seen=new Map();for(const t of GYM)for(const ex of program.sessions[t]){const k=key(ex.name);if(!seen.has(k))seen.set(k,{...ex,t})}return [...seen.values()]}
+function phaseGoalReached(){const ph=phaseInfo();return !!ph.goal&&ph.done>=ph.goal}
+function testDraft(names){
+  const all=new Map(allExercises().map(x=>[key(x.name),x]));
+  const d=newDraft("full");d.titre="Test des max";d.test=true;
+  d.entries=names.map(n=>{const x=all.get(key(n))||{name:n,pdc:false};
+    const e={key:key(x.name),name:x.name,target:x.pdc?"2 × max reps":"2 × charge max",pdc:!!x.pdc,band:false,rpe:"",uni:isUni(x.name),sets:[{w:"",r:"",g:""},{w:"",r:"",g:""}]};
+    prefill(e);e.sets=e.sets.slice(0,2);e.sets.forEach(s=>{delete s.up});return e});
+  return d}
+function openTestPicker(){
+  let ov=$("#testPick");if(ov)ov.remove();ov=document.createElement("div");ov.id="testPick";ov.className="sheetov";
+  const ex=allExercises(),byT=GYM.map(t=>[t,ex.filter(x=>x.t===t)]).filter(([,l])=>l.length);
+  ov.innerHTML=`<div class="sheet" role="dialog" aria-label="Séance test des max"><div class="row between"><h2>Test des max</h2><button class="link" data-tclose aria-label="Fermer">✕</button></div>
+    <p class="hint">Coche les exercices à tester. Chacun aura 2 séries (tu peux en enlever une) : monte la charge jusqu'à ton max, ou fais le max de répétitions au poids du corps.</p>
+    <div class="row" style="gap:6px">${byT.map(([t])=>`<button class="chip" data-tall="${t}" style="--tc:${TYPES[t].c}">Tout ${TYPES[t].label}</button>`).join("")}</div>
+    <div class="tlist">${byT.map(([t,l])=>`<h3 style="color:${TYPES[t].c}">${TYPES[t].label}</h3>${l.map(x=>`<label class="tpick"><input type="checkbox" value="${esc(x.name)}" data-tt="${t}"><span>${esc(x.name)}</span>${x.pdc?`<small>poids du corps</small>`:""}</label>`).join("")}`).join("")}</div>
+    <div class="row between"><span class="hint" id="tcount">0 exercice</span><button class="btn" id="tgo" disabled>Lancer le test</button></div></div>`;
+  document.body.appendChild(ov);
+  const upd=()=>{const n=ov.querySelectorAll("input:checked").length;$("#tcount").textContent=n+" exercice"+(n>1?"s":"");$("#tgo").disabled=!n};
+  ov.addEventListener("change",upd);
+  ov.addEventListener("click",ev=>{const t=ev.target;
+    if(t===ov||t.closest("[data-tclose]")){ov.remove();return}
+    const all=t.closest("[data-tall]");if(all){const cb=[...ov.querySelectorAll(`input[data-tt="${all.dataset.tall}"]`)];const on=cb.some(c=>!c.checked);cb.forEach(c=>c.checked=on);upd();return}
+    if(t.closest("#tgo")){const names=[...ov.querySelectorAll("input:checked")].map(c=>c.value);if(!names.length)return;
+      if(draftTouched()&&!confirmArm(t.closest("#tgo"),"Remplacer la séance en cours ?"))return;
+      ov.remove();if(draft&&draft.type!=="full"&&touched(draft))stash[draft.type]=draft;current="full";draft=testDraft(names);save();showTab("seance");selectType("full",true);renderPlanBanner();window.scrollTo(0,0)}});
+}
 function renderPlanBanner(){
   const el=$("#planBanner");if(role!=="athlete"){el.innerHTML="";return}
+  if(phaseGoalReached()&&!(draft&&draft.test)&&!pendingPlans().some(p=>p.date<=todayISO())){const ph=phaseInfo();
+    el.innerHTML=`<div class="card accent"><span class="label">Phase ${ph.n} terminée · ${ph.goal} / ${ph.goal}</span><h2>C'est le moment de tester tes max</h2>
+      <p class="hint">Choisis les exercices que tu veux tester, 2 séries chacun. Ensuite, passe à la phase ${ph.n+1} dans Programme.</p><button class="btn" data-testmax>Séance test des max</button></div>`;return}
   const p=pendingPlans().find(p=>p.date<=todayISO())||null;
   if(!p||(draft&&draft.planId===p.id)){el.innerHTML="";return}
   el.innerHTML=`<div class="card accent"><div class="row between"><span class="label">Prévu par ton coach · ${fmtDate(p.date)}</span><span class="tag" style="--tc:${TYPES[p.type]?.c}">${TYPES[p.type]?.label||""}</span></div>
     <h2>${esc(p.titre||"Séance du jour")}</h2><p class="hint">${(p.exercices||[]).map(x=>esc(x.nom)).join(" · ")}</p>
     <button class="btn" data-loadplan="${esc(p.id)}">Faire cette séance</button></div>`;
 }
-$("#planBanner").addEventListener("click",e=>{const b=e.target.closest("[data-loadplan]");if(b)loadPlan(b.dataset.loadplan,b)});
+$("#planBanner").addEventListener("click",e=>{const b=e.target.closest("[data-loadplan]");if(b)loadPlan(b.dataset.loadplan,b);if(e.target.closest("[data-testmax]"))openTestPicker()});
 function loadPlan(id,btn){
   const p=plans.find(p=>p.id===id);if(!p)return;
   if(draftTouched()&&!confirmArm(btn,"Remplacer la séance en cours ?"))return;
@@ -1786,6 +1827,7 @@ async function connectSample(){
 function todayAdvice(){
   if(!workouts.length)return "";
   const today=todayISO();if(workouts.some(w=>w.date===today))return "Séance faite aujourd'hui. Récupère bien.";
+  if(phaseGoalReached())return "Fin de phase : c'est le moment de tester tes max.";
   const t=suggestType(),ld=lastDateOf(t);
   const days=ld?Math.round((new Date(today)-new Date(ld))/864e5):null;
   return `Aujourd'hui : ${TYPES[t].label}`+(days==null?", pas encore faite":days>=2?`, rien depuis ${days} jours`:"");
@@ -2245,9 +2287,11 @@ function renderPhase(){
     <div class="phases">${PHASES.map(p=>`<div class="ph ${p.n===ph.n?"cur":p.n<ph.n?"done":""}"><b class="n">${p.n}</b><div><h3>${p.name}${p.goal?` · ${p.goal} séances`:""}</h3><p class="hint">${p.desc}${p.n===ph.n&&p.goal?` <b>${Math.min(ph.done,p.goal)} / ${p.goal} faites.</b>`:""}</p></div></div>`).join("")}</div>
     <div class="row" style="align-items:flex-end"><div class="inp" style="flex:1;min-width:150px"><label class="label" for="phaseDone">Séances déjà faites en phase ${ph.n}</label><input id="phaseDone" type="number" inputmode="numeric" min="0" max="200" value="${ph.done}"></div><button class="btn small ghost" id="phaseDoneSave">Corriger</button></div>
     <p class="hint" style="margin-top:-4px">Compte aussi les séances faites avant le carnet. Les nouvelles séances enregistrées s'ajoutent toutes seules.</p>
+    ${ph.goal&&ph.done>=ph.goal?`<div class="row"><button class="btn small" data-testmax>Séance test des max</button></div>`:""}
     <div class="row">${ph.n<3?`<button class="btn small" id="phaseNext">Passer à la phase ${ph.n+1}</button>`:""}${ph.n>1?`<button class="link" id="phasePrev" style="color:var(--muted)">Revenir à la phase ${ph.n-1}</button>`:""}</div>`;
 }
 $("#phaseCard").addEventListener("click",async e=>{const b=e.target.closest("button");if(!b)return;
+  if(b.hasAttribute("data-testmax")){openTestPicker();return}
   if(b.id==="phaseDoneSave"){const v=parseInt($("#phaseDone").value);if(isNaN(v)||v<0)return;const ph=phaseInfo();
     try{await saveProgram({...clone(program),phase:{n:ph.n,start:ph.start||null,adj:v-ph.counted}})}catch{}renderPhase();renderSession();return}
   const ph=phaseInfo();let n=ph.n;
