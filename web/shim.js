@@ -121,15 +121,15 @@ function askKey(){
   return new Promise(res=>{
     const w=document.createElement("div");
     w.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(10,19,48,.6);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Barlow,-apple-system,sans-serif";
-    w.innerHTML=`<div style="background:#fff;color:#141824;border-radius:20px;max-width:420px;width:100%;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-      <h3 style="margin:0 0 8px;font:800 1.3rem 'Barlow Condensed',sans-serif;text-transform:uppercase">Mettre une séance au propre</h3>
+    w.innerHTML=`<div style="background:#fff;color:#0A1330;border-radius:20px;max-width:420px;width:100%;padding:24px 20px;box-shadow:0 8px 24px rgba(10,19,48,.16)">
+      <h3 style="margin:0 0 8px;font:600 1.125rem Barlow,sans-serif">Mettre une séance au propre</h3>
       <p style="margin:0 0 12px;line-height:1.45;font-size:.95rem">Pour lire un message en vrac et en faire une séance, Repz utilise Claude avec ta propre clé Anthropic (la même que pour Mijonote). Elle reste sur ce téléphone et coûte quelques centimes par séance.</p>
       <p style="margin:0 0 12px;font-size:.9rem"><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#1C3170;font-weight:600">Créer une clé sur console.anthropic.com</a></p>
-      <input type="password" autocomplete="off" placeholder="sk-ant-..." style="width:100%;box-sizing:border-box;padding:.75rem;border:1.5px solid #DCE1E9;border-radius:12px;font-size:16px">
+      <input type="password" autocomplete="off" placeholder="sk-ant-..." style="width:100%;box-sizing:border-box;padding:.75rem;border:1px solid rgba(10,19,48,.16);border-radius:10px;font-size:16px">
       <p data-e style="color:#D02B1F;font-size:.85rem;min-height:1em;margin:6px 0 0"></p>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
-        <button data-c style="padding:.65rem 1rem;border-radius:12px;border:1.5px solid #DCE1E9;background:#fff;font-size:1rem">Annuler</button>
-        <button data-o style="padding:.65rem 1.2rem;border-radius:12px;border:0;background:#1C3170;color:#fff;font-weight:700;font-size:1rem">Enregistrer</button>
+        <button data-c style="padding:.65rem 1rem;border-radius:12px;border:1px solid rgba(10,19,48,.16);background:#fff;font-size:1rem;font-weight:500">Annuler</button>
+        <button data-o style="padding:.65rem 1.2rem;border-radius:12px;border:0;background:#0A1330;color:#fff;font-weight:600;font-size:1rem">Enregistrer</button>
       </div></div>`;
     document.body.appendChild(w);
     const inp=w.querySelector("input");setTimeout(()=>inp.focus(),50);
@@ -178,8 +178,8 @@ const sample=Object.freeze(Object.assign((i,o)=>call(i,o),{
 /* ---------- sauvegarde ---------- */
 function askName(){return new Promise(ok=>{
   const d=document.createElement("div");
-  d.style.cssText="position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#1C3170,#0A1330);display:flex;align-items:center;justify-content:center;padding:24px;font-family:Barlow,system-ui,sans-serif;color:#fff";
-  d.innerHTML='<form style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px;text-align:center"><img src="icons/icon-192.png" alt="" style="width:96px;height:96px;border-radius:24px;margin:0 auto;box-shadow:0 10px 30px rgba(0,0,0,.4)"><h1 style="margin:0;font-family:\'Barlow Condensed\',system-ui;font-size:2.4rem;text-transform:uppercase;color:#E9B949">Bienvenue sur Repz</h1><p style="margin:0;opacity:.85">Ton carnet de muscu. Tes séances restent sur ton téléphone.</p><input name="n" placeholder="Ton prénom" autocomplete="given-name" required maxlength="30" style="padding:14px;border-radius:14px;border:0;font-size:1.1rem;text-align:center;color:#0A1330"><button style="padding:15px;border:0;border-radius:14px;background:linear-gradient(135deg,#F2CB66,#E9B949 50%,#B98A2C);color:#0A1330;font-weight:800;font-size:1.1rem;text-transform:uppercase;letter-spacing:.05em">C\'est parti</button></form>';
+  d.style.cssText="position:fixed;inset:0;z-index:100;background:#0E1838;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Barlow,system-ui,sans-serif;color:#fff";
+  d.innerHTML='<form style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px;text-align:center"><img src="icons/icon-192.png" alt="" style="width:96px;height:96px;border-radius:24px;margin:0 auto;box-shadow:0 8px 24px rgba(0,0,0,.3)"><h1 style="margin:0;font-family:\'Barlow Condensed\',system-ui;font-size:2.5rem;font-weight:500;line-height:1.05;color:#fff">Bienvenue sur Repz</h1><p style="margin:0;opacity:.85">Ton carnet de muscu. Tes séances restent sur ton téléphone.</p><input name="n" placeholder="Ton prénom" autocomplete="given-name" required maxlength="30" style="padding:12px 14px;min-height:48px;border-radius:12px;border:0;font-size:1.0625rem;text-align:center;color:#0A1330"><button style="min-height:48px;padding:12px 20px;border:0;border-radius:12px;background:#E9B949;box-shadow:inset 0 1px 0 rgba(255,255,255,.35);color:#0A1330;font-weight:600;font-size:1rem">C\'est parti</button></form>';
   document.body.appendChild(d);const f=d.querySelector("form");setTimeout(()=>f.n.focus(),100);
   f.onsubmit=e=>{e.preventDefault();const v=f.n.value.trim();if(!v)return;setName(v);d.remove();ok(v)};
 })}
