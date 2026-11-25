@@ -210,8 +210,16 @@ details[open]>.sum::after{transform:rotate(-135deg);margin-bottom:0}
 .sets .setrow{padding:4px 0;border-radius:12px;transition:background-color .2s var(--ease)}
 .sets .setrow.done{background:color-mix(in srgb,var(--go) 9%,transparent)}
 .setrow .n{width:28px;height:28px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-family:var(--body);font-weight:600;color:var(--ink2);font-size:.8125rem}
-.setrow.wu .n{background:transparent;box-shadow:inset 0 0 0 1px var(--line2);color:var(--muted);font-size:.75rem}
+.setrow.wu .n{background:transparent;box-shadow:inset 0 0 0 1px var(--line2);color:var(--muted);font-size:.6875rem}
+.wuctl{display:flex;align-items:center;gap:8px;font-size:.875rem;color:var(--ink2);margin-bottom:-4px}
+.wuctl b{min-width:16px;text-align:center;font-weight:600;color:var(--ink)}
+.wuctl .chip.ic{width:32px;min-height:32px;border-radius:8px}
 .setrow.wu .cell{background:transparent}
+button.n{border:0;padding:0;cursor:pointer}
+.setrow.drop .n{background:transparent;color:var(--muted)}
+.setrow.drop .n .i{width:14px;height:14px}
+.setrow.done .n .i{display:none}
+.setrow.drop .prev{font-size:.75rem;color:var(--muted)}
 .setrow.done .n{background:var(--go);color:var(--on-go);font-size:0}
 .setrow.done .n::after{content:"";width:9px;height:5px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-1px) rotate(-45deg)}
 .prev{background:none;border:0;padding:6px 4px;text-align:left;font-size:.875rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:8px;min-width:0}
@@ -571,7 +579,7 @@ svg.bmap{width:100%;display:block}
 const TYPES={push:{label:"Push",c:"var(--push)"},pull:{label:"Pull",c:"var(--pull)"},full:{label:"Full body",c:"var(--full)",on:"#231800"},legs:{label:"Legs",c:"var(--legs)"}};
 const GYM=["push","pull","full","legs"];
 /* un seul jeu d'icônes au trait (lucide), même taille et même épaisseur partout */
-const ICON={play:'<path d="M7 4.5v15l12-7.5z"/>',pencil:'<path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>',x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',check:'<path d="M20 6 9 17l-5-5"/>',up:'<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',down:'<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',trend:'<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>',rotate:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',pause:'<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',minus:'<path d="M5 12h14"/>',chevL:'<path d="m15 18-6-6 6-6"/>',chevR:'<path d="m9 18 6-6-6-6"/>',timer:'<path d="M10 2h4"/><path d="m12 14 3-3"/><circle cx="12" cy="14" r="8"/>'};
+const ICON={play:'<path d="M7 4.5v15l12-7.5z"/>',pencil:'<path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>',x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',check:'<path d="M20 6 9 17l-5-5"/>',up:'<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>',down:'<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',trend:'<path d="M22 7 13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/>',rotate:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',pause:'<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',minus:'<path d="M5 12h14"/>',chevL:'<path d="m15 18-6-6 6-6"/>',chevR:'<path d="m9 18 6-6-6-6"/>',timer:'<path d="M10 2h4"/><path d="m12 14 3-3"/><circle cx="12" cy="14" r="8"/>',drop:'<path d="m15 10 5 5-5 5"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>'};
 const ico=n=>`<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
 const COACH={
   push:[["Pompes",3,"10",1],["Dips",3,"max",1],["Développé incliné barre",3,"10",0],["Développé militaire haltères",3,"10",0],["Élévations latérales",3,"12",0],["Extension triceps à la corde",3,"12",0]],
@@ -614,11 +622,44 @@ const sameK=(a,b)=>a===b||stemK(a)===stemK(b);
    Dans le programme, « Séries » compte tout : 3 = 1 d'échauffement + 2 de travail. */
 const phaseN=()=>(program&&program.phase&&program.phase.n)||1;
 const wuDefault=(pdc,reps)=>phaseN()>=2&&!pdc&&!isTime(reps);
-const workSets=x=>(x&&x.sets||[]).filter(s=>s&&!s.wu);
-const workIdx=(e,j)=>j-(e.sets[0]&&e.sets[0].wu&&j>0?1:0);
-const wuOf=w=>w>=20?Math.round(w*.6/2.5)*2.5:Math.max(1,Math.round(w*.6));
+const isWork=s=>!!s&&!s.wu&&!s.drop;
+const workSets=x=>(x&&x.sets||[]).filter(isWork);
+const wuCount=e=>(e&&e.sets||[]).filter(s=>s.wu).length;
+const workIdx=(e,j)=>e.sets.slice(0,j).filter(isWork).length;
+// charges d'échauffement en rampe vers la charge de travail : 1 série à 60 %, 2 à 50 puis 75 %, 3 à 40, 60, 80 %
+const WU_RAMP={1:[.6],2:[.5,.75],3:[.4,.6,.8]};
+const wuFrac=(n,k)=>(WU_RAMP[n]||Array.from({length:n},(_,i)=>.4+.45*i/(n-1)))[k];
+const wuOf=(w,f=.6)=>w>=20?Math.round(w*f/2.5)*2.5:Math.max(1,Math.round(w*f));
+// séries du programme : « Séries » compte tout ; wu = nombre de séries d'échauffement (par défaut 1 en phase 2 sur les exos chargés)
+function progWu(ex){const n=parseSets(ex.sets);let w=typeof ex.wu==="number"?ex.wu:ex.wu===true?1:ex.wu===false?0:(wuDefault(ex.pdc,ex.reps)?1:0);
+  w=Math.max(0,Math.min(w,n-1));return {wu:w,work:n-w}}
 // la série de la dernière fois qui correspond à cette ligne : échauffement avec échauffement, travail avec travail
-function prevSet(e,j,last){if(!last)return null;const s=e.sets[j];if(s&&s.wu)return last.sets.find(x=>x.wu)||null;return workSets(last)[workIdx(e,j)]||null}
+function prevSet(e,j,last){if(!last)return null;const s=e.sets[j];if(s&&s.wu)return last.sets.filter(x=>x.wu)[j]||null;
+  if(s&&s.drop){let d=0;for(let t=j;t>=0&&e.sets[t].drop;t--)d++;return lastDrop(last.sets,workIdx(e,j)-1,d-1)}
+  return workSets(last)[workIdx(e,j)]||null}
+// le palier n° d de charge baissée après la série de travail n° k, la dernière fois
+function lastDrop(sets,k,d){let w=-1,r=-1;for(const x of sets){if(isWork(x)){w++;r=-1}else if(x.drop&&w===k){r++;if(r===d)return x}}return null}
+// ajoute un palier de charge baissée sous la série j (environ 20 % plus léger)
+function addDrop(i,j){const e=draft.entries[i];let k=j+1;while(e.sets[k]&&e.sets[k].drop)k++;
+  const pw=parseFloat(String(e.sets[k-1].w).replace(",","."))||0,w=pw?(pw>=20?Math.round(pw*.8/2.5)*2.5:Math.max(1,Math.round(pw*.8))):"";
+  e.sets.splice(k,0,{w:w===""?"":String(w),r:"",g:"",drop:true});save();renderSession();
+  const el=document.getElementById((e.uni?"g":"r")+i+"_"+k);if(el){el.scrollIntoView({block:"center"});el.focus()}}
+function openSetMenu(i,j){const e=draft.entries[i],s=e.sets[j];if(!s)return;
+  const lbl=s.wu?"Échauffement":s.drop?"Charge baissée":"Série "+(workIdx(e,j)+1);
+  const val=(s.w!==""?String(s.w).replace(".",",")+" kg":"")+(s.r!==""?" × "+s.r:"");
+  const ov=document.createElement("div");ov.className="sheetov";
+  ov.innerHTML=`<div class="sheet" role="dialog" aria-label="${esc(lbl)}"><div class="row between"><h2>${esc(e.name)} · ${esc(lbl)}${val?` <span class="label num">${esc(val)}</span>`:""}</h2><button class="link" data-smclose aria-label="Fermer" style="text-decoration:none;color:var(--muted)">${ico("x")}</button></div>
+    ${s.wu?"":`<button class="btn" data-smdrop>${ico("drop")}Charge baissée pendant la série</button><p class="hint">Trop lourd au milieu de la série : note la charge baissée et les reps faites ensuite, sur la ligne qui s'ajoute dessous. Ça reste la même série.</p>`}
+    ${s.drop||s.wu?`<button class="btn ghost" data-smdel>Retirer cette ligne</button>`:""}</div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener("click",ev=>{const b=ev.target.closest("button");if(ev.target===ov||(b&&b.dataset.smclose!=null)){ov.remove();return}if(!b)return;
+    if(b.dataset.smdrop!=null){ov.remove();addDrop(i,j)}
+    else if(b.dataset.smdel!=null){ov.remove();e.sets.splice(j,1);save();renderSession()}})}
+// charges des séries d'échauffement encore vides : celles de la dernière fois, sinon la rampe vers la charge de travail
+function fillWu(e,last){const n=wuCount(e);if(!n)return;const lu=last?last.sets.filter(x=>x.wu):[];
+  const cur=Math.max(0,...workSets(e).map(x=>parseFloat(String(x.w).replace(",","."))||0));
+  const base=cur||(last&&(workSets(last)[0]||{}).w)||0;
+  e.sets.forEach((x,k)=>{if(!x.wu||x.w!=="")return;const v=lu[k]&&lu[k].w!=null&&lu.length===n?lu[k].w:base?wuOf(base,wuFrac(n,k)):null;if(v!=null){x.w=String(v);x.auto=true}})}
 const ls={get(k,d){try{const v=localStorage.getItem("cm_"+k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem("cm_"+k,JSON.stringify(v))}catch{}}};
 const todayISO=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const fmtDate=iso=>new Date(iso+"T12:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
@@ -667,7 +708,7 @@ function startOffline(kind,w){
   if(kind==="edit"){
     d=newDraft(w.type);
     d.entries=(w.entries||[]).map(e=>({key:e.key||key(e.name),name:e.name,target:e.target||"",pdc:!!e.pdc,band:!!e.band,uni:!!e.uni,rpe:e.rpe??"",pain:e.pain?String(e.pain.lvl):"",painZone:e.pain?.zone||"",
-      sets:e.sets.map(s=>({...(e.uni?{w:s.w??"",r:String(s.d??s.r??""),g:String(s.g??"")}:{w:s.w??"",r:String(s.r??""),g:""}),...(s.wu?{wu:true}:{})})).map(s=>({...s,w:s.w===""?"":String(s.w)}))}));
+      sets:e.sets.map(s=>({...(e.uni?{w:s.w??"",r:String(s.d??s.r??""),g:String(s.g??"")}:{w:s.w??"",r:String(s.r??""),g:""}),...(s.wu?{wu:true}:s.drop?{drop:true}:{})})).map(s=>({...s,w:s.w===""?"":String(s.w)}))}));
     Object.assign(d,{date:w.date,origDate:w.date,origTs:w.ts,editId:w.id,notes:w.notes||"",rpe:w.rpe??"",dureeManuelle:w.duree!=null?String(w.duree):"",warmSaved:w.warm||null,titre:w.titre||""});
     d.cardio=w.cardio?{format:w.cardio.format||"",min:w.cardio.min??"",feel:w.cardio.feel||""}:{format:"",min:"",feel:""};
   }else{
@@ -852,15 +893,15 @@ function lastOf(k){for(const w of workouts){const e=(w.entries||[]).find(e=>same
 // reprend les charges de la dernière fois (les reps restent à remplir, la dernière valeur s'affiche en gris)
 // le nombre de lignes reste celui demandé (programme ou « Modifier ») : on ne rajoute plus les séries de la dernière fois
 function prefill(e){const last=lastOf(e.key);if(!last)return e;
-  const lw=workSets(last),lu=last.sets.find(x=>x.wu);
+  const lw=workSets(last);
   const up=progressUp(e,last);// objectif atteint la dernière fois : on propose directement la charge au-dessus
-  e.sets.forEach((s,j)=>{if(s.w!=="")return;
-    if(s.wu){const b=lu&&lu.w!=null?lu.w:(lw[0]&&lw[0].w?wuOf(lw[0].w):null);if(b!=null){s.w=String(b);s.auto=true}return}
+  e.sets.forEach((s,j)=>{if(s.w!==""||s.wu||s.drop)return;
     const ls_=lw[workIdx(e,j)]||lw.at(-1);if(ls_&&ls_.w!=null){s.w=String(up?Math.round((ls_.w+up)*4)/4:ls_.w);s.auto=true;if(up)s.up=true}});
+  fillWu(e,last);
   if(e.uni===undefined||(!e.uni&&last.uni))e.uni=!!last.uni||e.uni;return e}
 function bestOf(k,list){
   let bw=null,br=null,brAtBw=null;
-  for(const w of (list||workouts))for(const e of (w.entries||[]))if(sameK(e.key,k))for(const s of e.sets){if(s.wu)continue;
+  for(const w of (list||workouts))for(const e of (w.entries||[]))if(sameK(e.key,k))for(const s of e.sets){if(s.wu||s.drop)continue;
     if(s.w!=null&&(bw==null||s.w>bw||(s.w===bw&&(s.r||0)>(brAtBw||0)))){bw=s.w;brAtBw=s.r}
     if(s.r!=null&&(br==null||s.r>br))br=s.r;
   }
@@ -879,7 +920,7 @@ const painTxt=p=>p?` · gêne ${PAIN[p.lvl]}${p.zone?" ("+p.zone.toLowerCase()+"
 function setTxt(s,pdc,band,time){const w=s.w!=null?(pdc?"+"+s.w+" kg":s.w+" kg"):(pdc?(band?"élastique":"PDC"):"—");
   if(s.g!=null||s.d!=null)return w+" × "+(s.g??"–")+" G / "+(s.d??"–")+" D";
   return w+(s.r!=null?" × "+s.r+(time?" s":""):"")}
-function setsTxt(e){return e.sets.map(s=>setTxt(s,e.pdc,e.band,isTime(e.target))).join(" · ")}
+function setsTxt(e){let o="";e.sets.forEach((s,k)=>{const t=(s.wu?"éch. ":"")+setTxt(s,e.pdc,e.band,isTime(e.target));o+=k===0?t:(s.drop?" ↘ ":" · ")+t});return o}
 function parseSets(n){const x=parseInt(n);return isNaN(x)?3:Math.min(Math.max(x,1),10)}
 const tonnage=w=>(w.entries||[]).reduce((a,e)=>a+e.sets.reduce((b,s)=>b+(s.w&&s.r?s.w*s.r:0),0),0);
 // conseil de progression : objectif atteint sur toutes les séries avec un RPE ≤ 8 → on monte
@@ -1398,9 +1439,9 @@ function fillExoList(){
 let figOpen=new Set(), edOpen=-1;
 function newDraft(t){
   return {type:t,date:todayISO(),notes:"",rpe:"",warm:{done:[],min:""},cardio:{format:"",min:"",feel:""},clock:{warmStart:null,sessStart:null},
-    entries:program.sessions[t].map(ex=>{const n=parseSets(ex.sets),wu=n>1&&(ex.wu??wuDefault(ex.pdc,ex.reps));
-      return {key:key(ex.name),src:key(ex.name),name:ex.name,target:(wu?n-1:n)+" × "+ex.reps,pdc:!!ex.pdc,band:false,rpe:"",uni:isUni(ex.name),
-        sets:Array.from({length:n},(_,j)=>j===0&&wu?{w:"",r:"",g:"",wu:true}:{w:"",r:"",g:""})}}).map(prefill),wuv:1};
+    entries:program.sessions[t].map(ex=>{const {wu,work}=progWu(ex);
+      return {key:key(ex.name),src:key(ex.name),name:ex.name,target:work+" × "+ex.reps,pdc:!!ex.pdc,band:false,rpe:"",uni:isUni(ex.name),
+        sets:Array.from({length:wu+work},(_,j)=>j<wu?{w:"",r:"",g:"",wu:true}:{w:"",r:"",g:""})}}).map(prefill),wuv:1};
 }
 function touched(d){return !!d&&(d.entries.some(e=>e.sets.some(s=>s.r!==""||(s.g??"")!==""||(s.w!==""&&!d.coach&&!s.auto)))||d.warm.done.length>0||!!(d.clock&&(d.clock.warmStart||d.clock.sessStart))||!!d.notes)}
 function draftTouched(){return touched(draft)}
@@ -1430,7 +1471,7 @@ const effTxt=v=>v?"Effort "+v+"/10":"";
 const rpeSel=(id,val,attrs)=>`<select id="${id}" ${attrs}><option value="">–</option>${[6,7,8,9,10].map(n=>`<option value="${n}" ${String(val)===String(n)?"selected":""}>${n} · ${EFFORT[n]}</option>`).join("")}</select>`;
 const stepHead=(n,title,meta)=>`<div class="step-head"><span class="step-n">${n}</span><h2>${title}</h2>${meta?`<span class="label num">${meta}</span>`:""}</div>`;
 function isPR(e){
-  const b=bestOf(e.key);const done=e.sets.filter(s=>!s.wu&&setDone(e,s));if(!done.length||(b.bw==null&&b.br==null))return false;
+  const b=bestOf(e.key);const done=e.sets.filter(s=>isWork(s)&&setDone(e,s));if(!done.length||(b.bw==null&&b.br==null))return false;
   for(const s of done){const w=numOrNull(s.w),r=e.uni?Math.min(numOrNull(s.r),numOrNull(s.g)):numOrNull(s.r);
     if(w!=null&&b.bw!=null&&(w>b.bw||(w===b.bw&&r!=null&&r>(b.brAtBw||0))))return true;
     if(w==null&&b.bw==null&&r!=null&&b.br!=null&&r>b.br)return true;}
@@ -1455,21 +1496,21 @@ function renderSession(){migrateWu(draft);
     <div><button class="link" id="warmEditBtn">Modifier l'échauffement</button></div>`}
     </details></section>`;
   h+=`<section class="step">${stepHead(2,"Exercices",draft.entries.length+" exos")}
-    <p class="hint">Les chiffres en gris sont l'objectif ou ta dernière séance.${draft.entries.some(e=>e.sets[0]?.wu)?" <b>É</b> : série d'échauffement, plus légère, hors records et progression.":""} <b>Effort</b> : à quel point la série était dure, sur 10. 6 = facile, il te restait 4 reps · 8 = dur, encore 2 · 10 = à fond, impossible d'en faire une de plus.</p>`;
+    <p class="hint">Les chiffres en gris sont l'objectif ou ta dernière séance.${draft.entries.some(e=>e.sets[0]?.wu)?" <b>É</b> : série d'échauffement, plus légère, hors records et progression.":""} Touche le <b>numéro d'une série</b> pour noter une charge baissée en cours de série. <b>Effort</b> : à quel point la série était dure, sur 10. 6 = facile, il te restait 4 reps · 8 = dur, encore 2 · 10 = à fond, impossible d'en faire une de plus.</p>`;
   const firstHeavy=draft.entries.findIndex(e=>!e.pdc&&!isTime(e.target)&&workW(e)>=20);
   draft.entries.forEach((e,i)=>{
-    const last=lastOf(e.key), time=isTime(e.target), tip=progressTip(e,last);
+    const last=lastOf(e.key), time=isTime(e.target), tip=progressTip(e,last), nWu=wuCount(e);
     if(e.uni===undefined)e.uni=isUni(e.name);
     const exDone=e.sets.length&&e.sets.every(s=>setDone(e,s));
     const fx=exoFor(e.name),fo=figOpen.has(e.key)&&fx,eo=edOpen===i;
-    h+=`<div class="card ex ${exDone?"done":""}" id="ex${i}"><div class="ex-head"><h3><span class="exn">${i+1}</span>${esc(e.name)}<span class="badge pr" id="pr${i}" ${isPR(e)?"":"hidden"}>Record</span></h3>${e.target?`<span class="target num">${e.sets[0]?.wu?"Éch. + ":""}${esc(e.target)}</span>`:""}</div>
+    h+=`<div class="card ex ${exDone?"done":""}" id="ex${i}"><div class="ex-head"><h3><span class="exn">${i+1}</span>${esc(e.name)}<span class="badge pr" id="pr${i}" ${isPR(e)?"":"hidden"}>Record</span></h3>${e.target?`<span class="target num">${wuCount(e)?(wuCount(e)>1?wuCount(e)+" éch. + ":"Éch. + "):""}${esc(e.target)}</span>`:""}</div>
       <div class="ex-tools">${fx?`<button class="chip" data-fig="${i}" aria-pressed="${!!fo}">${ico("play")}Mouvement</button>`:""}<button class="chip" data-edx="${i}" aria-pressed="${eo}">${ico("pencil")}Modifier</button></div>
       ${fo?figBlock(fx):""}
       ${eo?`<div class="edpanel">
         <div class="inp"><label class="label" for="exName${i}">Exercice (tape ou choisis dans la liste)</label><input id="exName${i}" list="exoList" value="${esc(e.name)}" autocomplete="off"></div>
-        <div class="row"><label class="pill"><input type="checkbox" id="exUni${i}" ${e.uni?"checked":""}>Gauche / droite séparés</label><label class="pill"><input type="checkbox" id="exPdc${i}" ${e.pdc?"checked":""}>Poids du corps</label><label class="pill"><input type="checkbox" id="exWu${i}" ${e.sets[0]?.wu?"checked":""}>1re série d'échauffement</label></div>
+        <div class="row"><label class="pill"><input type="checkbox" id="exUni${i}" ${e.uni?"checked":""}>Gauche / droite séparés</label><label class="pill"><input type="checkbox" id="exPdc${i}" ${e.pdc?"checked":""}>Poids du corps</label></div>
         <div class="inp"><label class="label" for="exTgt${i}">Séries de travail (ex : 2 × 10 ou 3 × max)</label><input id="exTgt${i}" value="${esc(e.target||"")}"></div>
-        ${!draft.coach&&!draft.test&&!draft.editId&&!draft.past&&GYM.includes(draft.type)?`<label class="pill" style="align-self:flex-start"><input type="checkbox" id="exKeep${i}" checked>Garder pour les prochaines séances ${TYPES[draft.type].label}</label>`:""}
+        ${!draft.coach&&!draft.test&&!draft.editId&&!draft.past&&GYM.includes(draft.type)?`<label class="pill" style="align-self:flex-start"><input type="checkbox" id="exKeep${i}" checked>Garder pour les prochaines séances ${TYPES[draft.type].label} (exo, séries, échauffement)</label>`:""}
         <div class="row"><button class="chip" data-mv="-1" data-i="${i}" ${i===0?"disabled":""}>${ico("up")}Monter</button><button class="chip" data-mv="1" data-i="${i}" ${i===draft.entries.length-1?"disabled":""}>${ico("down")}Descendre</button><button class="chip danger" data-exdel="${i}">Supprimer l'exo</button></div>
         <div class="row"><button class="btn small" data-exok="${i}">Valider</button><button class="link" data-excancel="1" style="color:var(--muted)">Annuler</button></div></div>`:""}
       ${e.note?`<p class="consigne">${esc(e.note)}</p>`:""}
@@ -1477,13 +1518,14 @@ function renderSession(){migrateWu(draft);
       <div class="last num">${last?`<span>Séance précédente : <b style="color:var(--ink)">${TYPES[last.type]?.label||""} · ${fmtDate(last.date)}</b>${last.rpe?" · "+effTxt(last.rpe):""}</span> <button class="link" data-copy="${i}">Tout reprendre</button>`:"Première fois dans le carnet"}</div>
       ${tip?`<div class="last"><span class="tip">${ico("trend")}${esc(tip)}</span></div>`:""}
       ${i===firstHeavy&&!e.sets[0]?.wu?warmupSetsHTML(e):""}
+      <div class="wuctl"><span>Échauffement</span><button class="chip ic" data-wum="${i}" aria-label="Une série d'échauffement en moins" ${nWu?"":"disabled"}>${ico("minus")}</button><b class="num" aria-live="polite">${nWu}</b><button class="chip ic" data-wup="${i}" aria-label="Une série d'échauffement en plus">${ico("plus")}</button></div>
       <div class="sets ${e.uni?"uni":""}"><div class="sethead"><span>Série</span><span>Précédent</span><span>${e.pdc?"+kg":"kg"}</span>${e.uni?"<span>G</span><span>D</span>":`<span>${time?"sec":"reps"}</span>`}<span aria-hidden="true"></span></div>
       ${e.sets.map((s,j)=>{
         const ph=prevSet(e,j,last);
         const pv=ph?(ph.w!=null?fr(ph.w)+(last.pdc?" kg+":" kg")+" × ":"")+(ph.g!=null||ph.d!=null?(ph.g??"–")+"/"+(ph.d??"–"):(ph.r??"")):"";
         const rp=v=>esc(v??(s.pr||""));
-        return `<div class="setrow ${setDone(e,s)?"done":""} ${s.wu?"wu":""}"><span class="n num" ${s.wu?'title="Échauffement"':""}>${s.wu?"É":workIdx(e,j)+1}</span>
-        ${pv?`<button class="prev num" data-prevfill="${i}_${j}" aria-label="Reprendre ${esc(pv)}">${esc(pv)}</button>`:`<span class="prev none">—</span>`}
+        return `<div class="setrow ${setDone(e,s)?"done":""} ${s.wu?"wu":""} ${s.drop?"drop":""}"><button class="n num" data-setmenu="${i}_${j}" aria-label="${s.wu?"Échauffement":s.drop?"Charge baissée":"Série "+(workIdx(e,j)+1)} : options">${s.wu?(nWu>1?"É"+(j+1):"É"):s.drop?ico("drop"):workIdx(e,j)+1}</button>
+        ${pv?`<button class="prev num" data-prevfill="${i}_${j}" aria-label="Reprendre ${esc(pv)}">${esc(pv)}</button>`:s.drop?`<span class="prev">charge baissée</span>`:`<span class="prev none">—</span>`}
         <span class="wcell ${s.up?"up":""}"><input class="cell num" id="w${i}_${j}" inputmode="decimal" aria-label="${e.pdc?"Lest":"Charge"} série ${j+1}${s.up?", charge augmentée":""}" data-i="${i}" data-j="${j}" data-f="w" value="${esc(s.w)}" placeholder="${esc(ph?.w??(e.pdc?"PDC":"kg"))}">${s.up?`<i aria-hidden="true">${ico("up")}</i>`:""}</span>
         ${e.uni?`<input class="cell num" id="g${i}_${j}" inputmode="numeric" aria-label="Reps côté gauche série ${j+1}" data-i="${i}" data-j="${j}" data-f="g" value="${esc(s.g??"")}" placeholder="${rp(ph?.g??ph?.r)}">
         <input class="cell num" id="r${i}_${j}" inputmode="numeric" aria-label="Reps côté droit série ${j+1}" data-i="${i}" data-j="${j}" data-f="r" value="${esc(s.r)}" placeholder="${rp(ph?.d??ph?.r)}">`:
@@ -1533,7 +1575,7 @@ function barbellSVG(){
     <rect class="shaft" x="2" y="${cy-2.5}" width="${W-4}" height="5" rx="2.5"/>
     <rect class="collar" x="${inner+1}" y="${cy-7}" width="5" height="14" rx="1.5"/><rect class="collar" x="${W-inner-6}" y="${cy-7}" width="5" height="14" rx="1.5"/>${pl}</svg>`;
 }
-function setCounts(){let total=0,done=0;for(const e of draft.entries){total+=e.sets.length;done+=e.sets.filter(s=>setDone(e,s)).length}return {total,done}}
+function setCounts(){let total=0,done=0;for(const e of draft.entries){const S=e.sets.filter(s=>!s.drop);total+=S.length;done+=S.filter(s=>setDone(e,s)).length}return {total,done}}
 function heroHTML(sug,ld){
   const t=current,ck=draft.clock,{total,done}=setCounts();
   if(draft.editId||draft.past){
@@ -1565,9 +1607,9 @@ function keepInProgram(e,src,i,work){
   const t=draft.type,list=program.sessions&&program.sessions[t];if(!list)return;
   let idx=list.findIndex(x=>sameK(key(x.name),src));
   if(idx<0&&list[i]&&!draft.entries.some(d=>sameK(d.key,key(list[i].name))))idx=i;// exo déjà remplacé avant
-  const wu=!!e.sets[0]?.wu,reps=(String(e.target).split("·")[0].split("×")[1]||"").trim()||(idx>=0?list[idx].reps:"10");
-  const item={...(idx>=0?list[idx]:{}),name:e.name,sets:(work??workSets(e).length)+(wu?1:0),reps,pdc:!!e.pdc};
-  if(wu===wuDefault(item.pdc,reps))delete item.wu;else item.wu=wu;
+  const wu=wuCount(e),reps=(String(e.target).split("·")[0].split("×")[1]||"").trim()||(idx>=0?list[idx].reps:"10");
+  const item={...(idx>=0?list[idx]:{}),name:e.name,sets:(work??workSets(e).length)+wu,reps,pdc:!!e.pdc};
+  if(wu===(wuDefault(item.pdc,reps)?1:0))delete item.wu;else item.wu=wu;
   const p=clone(program);if(idx>=0)p.sessions[t][idx]=item;else p.sessions[t].push(item);
   e.src=key(e.name);saveProgram(p).catch(()=>{});
 }
@@ -1620,28 +1662,33 @@ $("#sessionBody").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.add!=null){const s=draft.entries[b.dataset.add].sets;s.push({w:s.at(-1)?.w||"",r:"",g:"",pr:s.at(-1)?.pr||""});save();renderSession()}
   else if(b.dataset.rm!=null){draft.entries[b.dataset.rm].sets.pop();save();renderSession()}
+  else if(b.dataset.wup!=null){const e2=draft.entries[+b.dataset.wup],n=wuCount(e2);
+    e2.sets.forEach(x=>{if(x.wu&&x.auto){x.w="";delete x.auto}});e2.sets.splice(n,0,{w:"",r:"",g:"",wu:true});fillWu(e2,lastOf(e2.key));save();renderSession()}
+  else if(b.dataset.wum!=null){const e2=draft.entries[+b.dataset.wum],n=wuCount(e2);if(!n)return;const x=e2.sets[n-1];
+    if((x.r!==""||(x.g??"")!=="")&&!confirmArm(b,"Touche encore"))return;
+    e2.sets.splice(n-1,1);e2.sets.forEach(y=>{if(y.wu&&y.auto){y.w="";delete y.auto}});fillWu(e2,lastOf(e2.key));save();renderSession()}
   else if(b.dataset.copy!=null){const e2=draft.entries[b.dataset.copy];const last=lastOf(e2.key);
-    e2.sets=last.sets.map(s=>({w:s.w??"",r:(s.d??s.r)??"",g:(s.g??(e2.uni?s.r:""))??"",...(s.wu?{wu:true}:{})}));e2.band=!!last.band;save();renderSession()}
+    e2.sets=last.sets.map(s=>({w:s.w??"",r:(s.d??s.r)??"",g:(s.g??(e2.uni?s.r:""))??"",...(s.wu?{wu:true}:s.drop?{drop:true}:{})}));e2.band=!!last.band;save();renderSession()}
   else if(b.id==="addEx"){const n=$("#extraEx").value.trim();if(!n)return;
     draft.entries.push({key:key(n),name:n,target:"en plus",pdc:false,band:false,uni:isUni(n),rpe:"",sets:[{w:"",r:"",g:""},{w:"",r:"",g:""},{w:"",r:"",g:""}]});save();renderSession()}
   else if(b.id==="resetDraft"||b.id==="cancelSess"){if(!confirmArm(b,b.id==="cancelSess"?"Touche encore pour confirmer l'annulation":"Confirmer : annuler la séance"))return;cancelSession()}
   else if(b.dataset.chk){const [i,j]=b.dataset.chk.split("_").map(Number);checkSet(i,j)}
+  else if(b.dataset.setmenu){const [i,j]=b.dataset.setmenu.split("_").map(Number);openSetMenu(i,j)}
   else if(b.dataset.prevfill){const [i,j]=b.dataset.prevfill.split("_").map(Number);checkSet(i,j,true)}
   else if(b.dataset.fig!=null){const k=draft.entries[b.dataset.fig].key;figOpen.has(k)?figOpen.delete(k):figOpen.add(k);renderSession()}
   else if(b.dataset.edx!=null){const i=+b.dataset.edx;edOpen=edOpen===i?-1:i;renderSession();const n=$("#exName"+i);if(n)n.focus()}
   else if(b.dataset.excancel){edOpen=-1;renderSession()}
   else if(b.dataset.exok!=null){const i=+b.dataset.exok,e2=draft.entries[i],src=e2.src||e2.key;let n=$("#exName"+i).value.trim();
-    const wasWu=!!e2.sets[0]?.wu,wu=$("#exWu"+i).checked;
+    const wu=wuCount(e2);
     if(n&&n!==e2.name){const known=exerciseList().get(stemK(key(n)));if(known)n=known.name;// même orthographe que dans le carnet
       e2.name=n;e2.key=key(n);e2.sets.forEach(s=>{if(s.auto){s.w="";delete s.auto;delete s.up}})}
     e2.uni=$("#exUni"+i).checked;e2.pdc=$("#exPdc"+i).checked;
     let tg=$("#exTgt"+i).value.trim();const m=tg.match(/^(\d+)\s*[x×*]\s*(.*)$/i),work=m?Math.min(Math.max(+m[1],1),10):null;
     if(m)tg=work+" × "+m[2].trim();e2.target=tg;
     // autant de lignes que de séries demandées (+ l'échauffement) ; une série déjà notée n'est jamais supprimée
-    if(work!=null){const want=work+(wu?1:0);
+    if(work!=null){const want=work+wu+e2.sets.filter(x=>x.drop).length;
       while(e2.sets.length<want)e2.sets.push({w:"",r:"",g:""});
       while(e2.sets.length>want){const x=e2.sets.at(-1);if(x.r!==""||(x.g??"")!=="")break;e2.sets.pop()}}
-    if(wu!==wasWu){e2.sets.forEach(x=>{delete x.wu;if(x.auto){x.w="";delete x.auto;delete x.up}});if(wu&&e2.sets.length>1)e2.sets[0].wu=true}
     prefill(e2);
     if($("#exKeep"+i)?.checked)keepInProgram(e2,src,i,work);
     edOpen=-1;save();renderSession();updateProgress(i,0)}
@@ -1707,7 +1754,7 @@ async function saveSession(btn){
     cardio:(k.format.trim()||k.min||k.feel)?{format:k.format.trim(),min:numOrNull(k.min),feel:k.feel}:null,
     entries:draft.entries.map(e=>({key:e.key,name:e.name,target:e.target,pdc:e.pdc,band:e.band,rpe:numOrNull(e.rpe),pain:e.pain?{lvl:+e.pain,zone:e.painZone||""}:null,
       uni:!!e.uni,sets:e.sets.map(s=>{const w=numOrNull(s.w);
-        const x=s.wu?{wu:true}:{};
+        const x=s.wu?{wu:true}:s.drop?{drop:true}:{};
         if(e.uni){const g=numOrNull(s.g),d=numOrNull(s.r);if(g==null&&d==null)return null;return {w,r:g!=null&&d!=null?Math.min(g,d):(g??d),g,d,...x}}
         const r=numOrNull(s.r);return r==null?null:{w,r,...x}}).filter(Boolean)})).filter(e=>e.sets.length)};
   if(draft.coach)w.titre=draft.coach.titre;else if(draft.titre)w.titre=draft.titre;
@@ -2018,7 +2065,7 @@ const MORDER=["pecs","delt_ant","delt_lat","delt_post","traps","lats","lowback",
 function muscleVolume(days){
   const since=new Date(Date.now()-days*864e5).toISOString().slice(0,10),v={};for(const g of MORDER)v[g]=0;
   for(const w of workouts)if(w.date>=since)for(const e of (w.entries||[])){
-    const n=(e.sets||[]).filter(s=>s&&!s.wu&&(String(s.r??"")!==""||String(s.g??"")!=="")).length||0;if(!n)continue;
+    const n=(e.sets||[]).filter(s=>isWork(s)&&(String(s.r??"")!==""||String(s.g??"")!=="")).length||0;if(!n)continue;
     const m=musclesFor(e.name);for(const g of m.p)v[g]+=n;for(const g of m.s)v[g]+=n*.5}
   const k=7/days;for(const g in v)v[g]=Math.round(v[g]*k*10)/10;return v;
 }
@@ -2406,7 +2453,7 @@ function drawEditor(){
       <span class="c"><input type="checkbox" id="pp_${t}_${i}" aria-label="Poids du corps" data-i="${i}" data-f="pdc" ${ex.pdc?"checked":""}></span>
       <button class="iconbtn" aria-label="Retirer ${esc(ex.name)}" data-prm="${i}">${ico("x")}</button></div>`).join("")}
     <div><button class="chip" id="padd">${ico("plus")}Exercice</button></div>
-    ${phaseN()>=2?`<p class="hint">Phase ${phaseN()} : sur les exercices avec charge, la 1re série est l'échauffement, plus légère. 3 séries = 1 d'échauffement + 2 de travail.</p>`:""}`;
+    ${phaseN()>=2?`<p class="hint">Phase ${phaseN()} : sur les exercices avec charge, la 1re série est un échauffement, plus léger (3 séries = 1 d'échauffement + 2 de travail). En séance, + / − à côté de « Échauffement » pour en mettre plus, moins ou aucun.</p>`:""}`;
 }
 document.querySelectorAll("#progSeg button").forEach(b=>b.addEventListener("click",()=>{progType=b.dataset.ptype;drawEditor()}));
 $("#progEditor").addEventListener("input",e=>{const x=e.target;if(x.dataset.f)editProg.sessions[progType][x.dataset.i][x.dataset.f]=x.type==="checkbox"?x.checked:x.value});
@@ -2432,8 +2479,9 @@ const REST_OPTS=[30,45,60,90,120,150,180,240];
 function sessElapsed(ck){if(!ck||!ck.sessStart)return 0;return (ck.paused||Date.now())-ck.sessStart-(ck.pausedMs||0)}
 function nextLabel(i,j){
   const e=draft.entries[i];if(!e)return "";
-  if(j+1<e.sets.length)return e.name+" · série "+(j+2);
-  const n=draft.entries[i+1];return n?n.name+" · série 1":"Dernière série faite : enregistre ta séance";
+  const k=e.sets.findIndex((s,t)=>t>j&&!setDone(e,s));// la prochaine ligne encore à faire (échauffement, série ou charge baissée)
+  if(k>=0){const s=e.sets[k];return e.name+" · "+(s.wu?"échauffement":s.drop?"charge baissée":"série "+(workIdx(e,k)+1))}
+  const n=draft.entries[i+1];return n?n.name+" · "+(n.sets[0]&&n.sets[0].wu?"échauffement":"série 1"):"Dernière série faite : enregistre ta séance";
 }
 function startRestAfter(i,j){startRest(draft.entries[i].rest||restDur,{i,next:nextLabel(i,j)})}
 function togglePause(){const ck=draft.clock;
