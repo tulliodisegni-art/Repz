@@ -210,6 +210,8 @@ details[open]>.sum::after{transform:rotate(-135deg);margin-bottom:0}
 .sets .setrow{padding:4px 0;border-radius:12px;transition:background-color .2s var(--ease)}
 .sets .setrow.done{background:color-mix(in srgb,var(--go) 9%,transparent)}
 .setrow .n{width:28px;height:28px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-family:var(--body);font-weight:600;color:var(--ink2);font-size:.8125rem}
+.setrow.wu .n{background:transparent;box-shadow:inset 0 0 0 1px var(--line2);color:var(--muted);font-size:.75rem}
+.setrow.wu .cell{background:transparent}
 .setrow.done .n{background:var(--go);color:var(--on-go);font-size:0}
 .setrow.done .n::after{content:"";width:9px;height:5px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-1px) rotate(-45deg)}
 .prev{background:none;border:0;padding:6px 4px;text-align:left;font-size:.875rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:8px;min-width:0}
@@ -605,6 +607,18 @@ function migrate(p){
 
 const $=s=>document.querySelector(s);
 const key=n=>{const k=String(n).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g," ").trim();return ALIAS[k]||k};
+// même exercice malgré le pluriel (« Traction australiennes » = « Tractions australiennes » = « Traction australienne ») : l'historique suit
+const stemK=k=>String(k||"").split(" ").map(w=>w.length>3&&/[sx]$/.test(w)&&!/ss$/.test(w)?w.slice(0,-1):w).join(" ");
+const sameK=(a,b)=>a===b||stemK(a)===stemK(b);
+/* phase 2 et plus : sur les exercices avec charge, la 1re série est l'échauffement (plus légère), puis les séries de travail.
+   Dans le programme, « Séries » compte tout : 3 = 1 d'échauffement + 2 de travail. */
+const phaseN=()=>(program&&program.phase&&program.phase.n)||1;
+const wuDefault=(pdc,reps)=>phaseN()>=2&&!pdc&&!isTime(reps);
+const workSets=x=>(x&&x.sets||[]).filter(s=>s&&!s.wu);
+const workIdx=(e,j)=>j-(e.sets[0]&&e.sets[0].wu&&j>0?1:0);
+const wuOf=w=>w>=20?Math.round(w*.6/2.5)*2.5:Math.max(1,Math.round(w*.6));
+// la série de la dernière fois qui correspond à cette ligne : échauffement avec échauffement, travail avec travail
+function prevSet(e,j,last){if(!last)return null;const s=e.sets[j];if(s&&s.wu)return last.sets.find(x=>x.wu)||null;return workSets(last)[workIdx(e,j)]||null}
 const ls={get(k,d){try{const v=localStorage.getItem("cm_"+k);return v?JSON.parse(v):d}catch{return d}},set(k,v){try{localStorage.setItem("cm_"+k,JSON.stringify(v))}catch{}}};
 const todayISO=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const fmtDate=iso=>new Date(iso+"T12:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"});
@@ -653,7 +667,7 @@ function startOffline(kind,w){
   if(kind==="edit"){
     d=newDraft(w.type);
     d.entries=(w.entries||[]).map(e=>({key:e.key||key(e.name),name:e.name,target:e.target||"",pdc:!!e.pdc,band:!!e.band,uni:!!e.uni,rpe:e.rpe??"",pain:e.pain?String(e.pain.lvl):"",painZone:e.pain?.zone||"",
-      sets:e.sets.map(s=>e.uni?{w:s.w??"",r:String(s.d??s.r??""),g:String(s.g??"")}:{w:s.w??"",r:String(s.r??""),g:""}).map(s=>({...s,w:s.w===""?"":String(s.w)}))}));
+      sets:e.sets.map(s=>({...(e.uni?{w:s.w??"",r:String(s.d??s.r??""),g:String(s.g??"")}:{w:s.w??"",r:String(s.r??""),g:""}),...(s.wu?{wu:true}:{})})).map(s=>({...s,w:s.w===""?"":String(s.w)}))}));
     Object.assign(d,{date:w.date,origDate:w.date,origTs:w.ts,editId:w.id,notes:w.notes||"",rpe:w.rpe??"",dureeManuelle:w.duree!=null?String(w.duree):"",warmSaved:w.warm||null,titre:w.titre||""});
     d.cardio=w.cardio?{format:w.cardio.format||"",min:w.cardio.min??"",feel:w.cardio.feel||""}:{format:"",min:"",feel:""};
   }else{
@@ -834,16 +848,19 @@ function applyRole(){
 
 /* ---------- calculs ---------- */
 const e1rm=(w,r)=>w&&r?w*(1+Math.min(r,12)/30):null;
-function lastOf(k){for(const w of workouts){const e=(w.entries||[]).find(e=>e.key===k&&e.sets.length);if(e)return {date:w.date,type:w.type,...e}}return null}
+function lastOf(k){for(const w of workouts){const e=(w.entries||[]).find(e=>sameK(e.key,k)&&e.sets.length);if(e)return {date:w.date,type:w.type,...e}}return null}
 // reprend les charges de la dernière fois (les reps restent à remplir, la dernière valeur s'affiche en gris)
+// le nombre de lignes reste celui demandé (programme ou « Modifier ») : on ne rajoute plus les séries de la dernière fois
 function prefill(e){const last=lastOf(e.key);if(!last)return e;
-  while(e.sets.length<last.sets.length)e.sets.push({w:"",r:"",g:"",pr:e.sets.at(-1)?.pr||""});
+  const lw=workSets(last),lu=last.sets.find(x=>x.wu);
   const up=progressUp(e,last);// objectif atteint la dernière fois : on propose directement la charge au-dessus
-  e.sets.forEach((s,j)=>{const ls_=last.sets[j]||last.sets.at(-1);if(s.w===""&&ls_&&ls_.w!=null){s.w=String(up?Math.round((ls_.w+up)*4)/4:ls_.w);s.auto=true;if(up)s.up=true}});
+  e.sets.forEach((s,j)=>{if(s.w!=="")return;
+    if(s.wu){const b=lu&&lu.w!=null?lu.w:(lw[0]&&lw[0].w?wuOf(lw[0].w):null);if(b!=null){s.w=String(b);s.auto=true}return}
+    const ls_=lw[workIdx(e,j)]||lw.at(-1);if(ls_&&ls_.w!=null){s.w=String(up?Math.round((ls_.w+up)*4)/4:ls_.w);s.auto=true;if(up)s.up=true}});
   if(e.uni===undefined||(!e.uni&&last.uni))e.uni=!!last.uni||e.uni;return e}
 function bestOf(k,list){
   let bw=null,br=null,brAtBw=null;
-  for(const w of (list||workouts))for(const e of (w.entries||[]))if(e.key===k)for(const s of e.sets){
+  for(const w of (list||workouts))for(const e of (w.entries||[]))if(sameK(e.key,k))for(const s of e.sets){if(s.wu)continue;
     if(s.w!=null&&(bw==null||s.w>bw||(s.w===bw&&(s.r||0)>(brAtBw||0)))){bw=s.w;brAtBw=s.r}
     if(s.r!=null&&(br==null||s.r>br))br=s.r;
   }
@@ -898,9 +915,10 @@ function progressUp(e,last){
   if(!last||!last.sets.length||isTime(e.target)||e.pdc||last.pdc)return 0;
   const part=(String(e.target).split("·")[0].split("×")[1]||"").trim(),m=part.match(/^(\d+)(?:\s*-\s*(\d+))?$/);if(!m)return 0;
   const top=+(m[2]||m[1]);
-  if(!last.sets.every(s=>(s.r!=null&&s.r>=top)||(s.g!=null&&s.d!=null&&Math.min(s.g,s.d)>=top)))return 0;
+  const ws=workSets(last);if(!ws.length)return 0;
+  if(!ws.every(s=>(s.r!=null&&s.r>=top)||(s.g!=null&&s.d!=null&&Math.min(s.g,s.d)>=top)))return 0;
   if(last.rpe!=null&&last.rpe>8)return 0;
-  const w=Math.max(...last.sets.map(s=>s.w||0));if(!w)return 0;
+  const w=Math.max(...ws.map(s=>s.w||0));if(!w)return 0;
   return isUni(e.name)||w<20?1:2.5;// petites charges et haltères : +1 kg ; barres et machines : +2,5 kg
 }
 function progressTip(e,last){
@@ -908,10 +926,10 @@ function progressTip(e,last){
   const part=(String(e.target).split("·")[0].split("×")[1]||"").trim();
   const m=part.match(/^(\d+)(?:\s*-\s*(\d+))?$/);if(!m)return "";
   const top=+(m[2]||m[1]);
-  const allHit=last.sets.every(s=>s.r!=null&&s.r>=top);
+  const allHit=workSets(last).every(s=>s.r!=null&&s.r>=top);
   const easy=last.rpe==null||last.rpe<=8;
   if(!allHit||!easy)return "";
-  const ws=last.sets.map(s=>s.w).filter(v=>v!=null);
+  const ws=workSets(last).map(s=>s.w).filter(v=>v!=null);
   const up=progressUp(e,last);
   if(ws.length&&up)return "Objectif atteint la dernière fois : charge montée de "+fr(up)+" kg";
   return e.pdc?"Objectif atteint la dernière fois : ajoute du lest ou 1 rep":"";
@@ -1380,7 +1398,9 @@ function fillExoList(){
 let figOpen=new Set(), edOpen=-1;
 function newDraft(t){
   return {type:t,date:todayISO(),notes:"",rpe:"",warm:{done:[],min:""},cardio:{format:"",min:"",feel:""},clock:{warmStart:null,sessStart:null},
-    entries:program.sessions[t].map(ex=>({key:key(ex.name),name:ex.name,target:ex.sets+" × "+ex.reps,pdc:!!ex.pdc,band:false,rpe:"",uni:isUni(ex.name),sets:Array.from({length:parseSets(ex.sets)},()=>({w:"",r:"",g:""}))})).map(prefill)};
+    entries:program.sessions[t].map(ex=>{const n=parseSets(ex.sets),wu=n>1&&(ex.wu??wuDefault(ex.pdc,ex.reps));
+      return {key:key(ex.name),src:key(ex.name),name:ex.name,target:(wu?n-1:n)+" × "+ex.reps,pdc:!!ex.pdc,band:false,rpe:"",uni:isUni(ex.name),
+        sets:Array.from({length:n},(_,j)=>j===0&&wu?{w:"",r:"",g:"",wu:true}:{w:"",r:"",g:""})}}).map(prefill),wuv:1};
 }
 function touched(d){return !!d&&(d.entries.some(e=>e.sets.some(s=>s.r!==""||(s.g??"")!==""||(s.w!==""&&!d.coach&&!s.auto)))||d.warm.done.length>0||!!(d.clock&&(d.clock.warmStart||d.clock.sessStart))||!!d.notes)}
 function draftTouched(){return touched(draft)}
@@ -1410,14 +1430,18 @@ const effTxt=v=>v?"Effort "+v+"/10":"";
 const rpeSel=(id,val,attrs)=>`<select id="${id}" ${attrs}><option value="">–</option>${[6,7,8,9,10].map(n=>`<option value="${n}" ${String(val)===String(n)?"selected":""}>${n} · ${EFFORT[n]}</option>`).join("")}</select>`;
 const stepHead=(n,title,meta)=>`<div class="step-head"><span class="step-n">${n}</span><h2>${title}</h2>${meta?`<span class="label num">${meta}</span>`:""}</div>`;
 function isPR(e){
-  const b=bestOf(e.key);const done=e.sets.filter(s=>setDone(e,s));if(!done.length||(b.bw==null&&b.br==null))return false;
+  const b=bestOf(e.key);const done=e.sets.filter(s=>!s.wu&&setDone(e,s));if(!done.length||(b.bw==null&&b.br==null))return false;
   for(const s of done){const w=numOrNull(s.w),r=e.uni?Math.min(numOrNull(s.r),numOrNull(s.g)):numOrNull(s.r);
     if(w!=null&&b.bw!=null&&(w>b.bw||(w===b.bw&&r!=null&&r>(b.brAtBw||0))))return true;
     if(w==null&&b.bw==null&&r!=null&&b.br!=null&&r>b.br)return true;}
   return false;
 }
 
-function renderSession(){
+function migrateWu(d){if(!d||d.wuv||d.coach||d.test||d.editId||d.past)return;d.wuv=1;if(phaseN()<2)return;
+  for(const e of d.entries){if(e.sets.some(s=>s.wu)||e.sets.length<2||!wuDefault(e.pdc,e.target))continue;
+    const m=String(e.target||"").match(/^(\d+)\s*×\s*(.*)$/);if(!m||+m[1]!==e.sets.length)continue;
+    e.sets[0].wu=true;e.target=(+m[1]-1)+" × "+m[2]}}
+function renderSession(){migrateWu(draft);
   if(role==="coach")return;
   const t=current, ck=draft.clock;
   const sug=suggestType(), ld=lastDateOf(t);
@@ -1431,33 +1455,34 @@ function renderSession(){
     <div><button class="link" id="warmEditBtn">Modifier l'échauffement</button></div>`}
     </details></section>`;
   h+=`<section class="step">${stepHead(2,"Exercices",draft.entries.length+" exos")}
-    <p class="hint">Les chiffres en gris sont l'objectif ou ta dernière séance. <b>Effort</b> : à quel point la série était dure, sur 10. 6 = facile, il te restait 4 reps · 8 = dur, encore 2 · 10 = à fond, impossible d'en faire une de plus.</p>`;
+    <p class="hint">Les chiffres en gris sont l'objectif ou ta dernière séance.${draft.entries.some(e=>e.sets[0]?.wu)?" <b>É</b> : série d'échauffement, plus légère, hors records et progression.":""} <b>Effort</b> : à quel point la série était dure, sur 10. 6 = facile, il te restait 4 reps · 8 = dur, encore 2 · 10 = à fond, impossible d'en faire une de plus.</p>`;
   const firstHeavy=draft.entries.findIndex(e=>!e.pdc&&!isTime(e.target)&&workW(e)>=20);
   draft.entries.forEach((e,i)=>{
     const last=lastOf(e.key), time=isTime(e.target), tip=progressTip(e,last);
     if(e.uni===undefined)e.uni=isUni(e.name);
     const exDone=e.sets.length&&e.sets.every(s=>setDone(e,s));
     const fx=exoFor(e.name),fo=figOpen.has(e.key)&&fx,eo=edOpen===i;
-    h+=`<div class="card ex ${exDone?"done":""}" id="ex${i}"><div class="ex-head"><h3><span class="exn">${i+1}</span>${esc(e.name)}<span class="badge pr" id="pr${i}" ${isPR(e)?"":"hidden"}>Record</span></h3>${e.target?`<span class="target num">${esc(e.target)}</span>`:""}</div>
+    h+=`<div class="card ex ${exDone?"done":""}" id="ex${i}"><div class="ex-head"><h3><span class="exn">${i+1}</span>${esc(e.name)}<span class="badge pr" id="pr${i}" ${isPR(e)?"":"hidden"}>Record</span></h3>${e.target?`<span class="target num">${e.sets[0]?.wu?"Éch. + ":""}${esc(e.target)}</span>`:""}</div>
       <div class="ex-tools">${fx?`<button class="chip" data-fig="${i}" aria-pressed="${!!fo}">${ico("play")}Mouvement</button>`:""}<button class="chip" data-edx="${i}" aria-pressed="${eo}">${ico("pencil")}Modifier</button></div>
       ${fo?figBlock(fx):""}
       ${eo?`<div class="edpanel">
         <div class="inp"><label class="label" for="exName${i}">Exercice (tape ou choisis dans la liste)</label><input id="exName${i}" list="exoList" value="${esc(e.name)}" autocomplete="off"></div>
-        <div class="row"><label class="pill"><input type="checkbox" id="exUni${i}" ${e.uni?"checked":""}>Gauche / droite séparés</label><label class="pill"><input type="checkbox" id="exPdc${i}" ${e.pdc?"checked":""}>Poids du corps</label></div>
-        <div class="inp"><label class="label" for="exTgt${i}">Objectif (ex : 3 × 10)</label><input id="exTgt${i}" value="${esc(e.target||"")}"></div>
+        <div class="row"><label class="pill"><input type="checkbox" id="exUni${i}" ${e.uni?"checked":""}>Gauche / droite séparés</label><label class="pill"><input type="checkbox" id="exPdc${i}" ${e.pdc?"checked":""}>Poids du corps</label><label class="pill"><input type="checkbox" id="exWu${i}" ${e.sets[0]?.wu?"checked":""}>1re série d'échauffement</label></div>
+        <div class="inp"><label class="label" for="exTgt${i}">Séries de travail (ex : 2 × 10 ou 3 × max)</label><input id="exTgt${i}" value="${esc(e.target||"")}"></div>
+        ${!draft.coach&&!draft.test&&!draft.editId&&!draft.past&&GYM.includes(draft.type)?`<label class="pill" style="align-self:flex-start"><input type="checkbox" id="exKeep${i}" checked>Garder pour les prochaines séances ${TYPES[draft.type].label}</label>`:""}
         <div class="row"><button class="chip" data-mv="-1" data-i="${i}" ${i===0?"disabled":""}>${ico("up")}Monter</button><button class="chip" data-mv="1" data-i="${i}" ${i===draft.entries.length-1?"disabled":""}>${ico("down")}Descendre</button><button class="chip danger" data-exdel="${i}">Supprimer l'exo</button></div>
         <div class="row"><button class="btn small" data-exok="${i}">Valider</button><button class="link" data-excancel="1" style="color:var(--muted)">Annuler</button></div></div>`:""}
       ${e.note?`<p class="consigne">${esc(e.note)}</p>`:""}
       ${last&&last.pain?`<p class="consigne warnline">${ico("alert")}<span>La dernière fois : gêne ${PAIN[last.pain.lvl]} ${last.pain.zone?"("+esc(last.pain.zone.toLowerCase())+")":""}. Allège ou change d'exo si ça revient.</span></p>`:""}
       <div class="last num">${last?`<span>Séance précédente : <b style="color:var(--ink)">${TYPES[last.type]?.label||""} · ${fmtDate(last.date)}</b>${last.rpe?" · "+effTxt(last.rpe):""}</span> <button class="link" data-copy="${i}">Tout reprendre</button>`:"Première fois dans le carnet"}</div>
       ${tip?`<div class="last"><span class="tip">${ico("trend")}${esc(tip)}</span></div>`:""}
-      ${i===firstHeavy?warmupSetsHTML(e):""}
+      ${i===firstHeavy&&!e.sets[0]?.wu?warmupSetsHTML(e):""}
       <div class="sets ${e.uni?"uni":""}"><div class="sethead"><span>Série</span><span>Précédent</span><span>${e.pdc?"+kg":"kg"}</span>${e.uni?"<span>G</span><span>D</span>":`<span>${time?"sec":"reps"}</span>`}<span aria-hidden="true"></span></div>
       ${e.sets.map((s,j)=>{
-        const ph=last&&last.sets[j]?last.sets[j]:null;
+        const ph=prevSet(e,j,last);
         const pv=ph?(ph.w!=null?fr(ph.w)+(last.pdc?" kg+":" kg")+" × ":"")+(ph.g!=null||ph.d!=null?(ph.g??"–")+"/"+(ph.d??"–"):(ph.r??"")):"";
         const rp=v=>esc(v??(s.pr||""));
-        return `<div class="setrow ${setDone(e,s)?"done":""}"><span class="n num">${j+1}</span>
+        return `<div class="setrow ${setDone(e,s)?"done":""} ${s.wu?"wu":""}"><span class="n num" ${s.wu?'title="Échauffement"':""}>${s.wu?"É":workIdx(e,j)+1}</span>
         ${pv?`<button class="prev num" data-prevfill="${i}_${j}" aria-label="Reprendre ${esc(pv)}">${esc(pv)}</button>`:`<span class="prev none">—</span>`}
         <span class="wcell ${s.up?"up":""}"><input class="cell num" id="w${i}_${j}" inputmode="decimal" aria-label="${e.pdc?"Lest":"Charge"} série ${j+1}${s.up?", charge augmentée":""}" data-i="${i}" data-j="${j}" data-f="w" value="${esc(s.w)}" placeholder="${esc(ph?.w??(e.pdc?"PDC":"kg"))}">${s.up?`<i aria-hidden="true">${ico("up")}</i>`:""}</span>
         ${e.uni?`<input class="cell num" id="g${i}_${j}" inputmode="numeric" aria-label="Reps côté gauche série ${j+1}" data-i="${i}" data-j="${j}" data-f="g" value="${esc(s.g??"")}" placeholder="${rp(ph?.g??ph?.r)}">
@@ -1535,8 +1560,19 @@ function heroHTML(sug,ld){
     <div id="heroBar">${barbellSVG()}</div>${action}${fix}${(ck.warmStart||ck.sessStart||touched(draft))?`<button class="cancelbtn" id="cancelSess">${ico("x")}Annuler cette séance</button>`:""}</div>`;
 }
 // coche d'une série : reprend les valeurs affichées en gris (dernière fois ou objectif) si les cases sont vides
+// le changement fait pendant la séance (exo, séries, échauffement) reste pour les prochaines séances de ce type
+function keepInProgram(e,src,i,work){
+  const t=draft.type,list=program.sessions&&program.sessions[t];if(!list)return;
+  let idx=list.findIndex(x=>sameK(key(x.name),src));
+  if(idx<0&&list[i]&&!draft.entries.some(d=>sameK(d.key,key(list[i].name))))idx=i;// exo déjà remplacé avant
+  const wu=!!e.sets[0]?.wu,reps=(String(e.target).split("·")[0].split("×")[1]||"").trim()||(idx>=0?list[idx].reps:"10");
+  const item={...(idx>=0?list[idx]:{}),name:e.name,sets:(work??workSets(e).length)+(wu?1:0),reps,pdc:!!e.pdc};
+  if(wu===wuDefault(item.pdc,reps))delete item.wu;else item.wu=wu;
+  const p=clone(program);if(idx>=0)p.sessions[t][idx]=item;else p.sessions[t].push(item);
+  e.src=key(e.name);saveProgram(p).catch(()=>{});
+}
 function checkSet(i,j,fromPrev){
-  const e=draft.entries[i],s=e.sets[j],last=lastOf(e.key),ph=last&&last.sets[j]||{};
+  const e=draft.entries[i],s=e.sets[j],last=lastOf(e.key),ph=prevSet(e,j,last)||{};
   const num=v=>{const n=parseInt(String(v??""));return isNaN(n)?"":String(n)};
   if(setDone(e,s)&&!fromPrev){s.r="";if(e.uni)s.g="";}
   else{
@@ -1585,7 +1621,7 @@ $("#sessionBody").addEventListener("click",e=>{
   if(b.dataset.add!=null){const s=draft.entries[b.dataset.add].sets;s.push({w:s.at(-1)?.w||"",r:"",g:"",pr:s.at(-1)?.pr||""});save();renderSession()}
   else if(b.dataset.rm!=null){draft.entries[b.dataset.rm].sets.pop();save();renderSession()}
   else if(b.dataset.copy!=null){const e2=draft.entries[b.dataset.copy];const last=lastOf(e2.key);
-    e2.sets=last.sets.map(s=>({w:s.w??"",r:(s.d??s.r)??"",g:(s.g??(e2.uni?s.r:""))??""}));e2.band=!!last.band;save();renderSession()}
+    e2.sets=last.sets.map(s=>({w:s.w??"",r:(s.d??s.r)??"",g:(s.g??(e2.uni?s.r:""))??"",...(s.wu?{wu:true}:{})}));e2.band=!!last.band;save();renderSession()}
   else if(b.id==="addEx"){const n=$("#extraEx").value.trim();if(!n)return;
     draft.entries.push({key:key(n),name:n,target:"en plus",pdc:false,band:false,uni:isUni(n),rpe:"",sets:[{w:"",r:"",g:""},{w:"",r:"",g:""},{w:"",r:"",g:""}]});save();renderSession()}
   else if(b.id==="resetDraft"||b.id==="cancelSess"){if(!confirmArm(b,b.id==="cancelSess"?"Touche encore pour confirmer l'annulation":"Confirmer : annuler la séance"))return;cancelSession()}
@@ -1594,9 +1630,20 @@ $("#sessionBody").addEventListener("click",e=>{
   else if(b.dataset.fig!=null){const k=draft.entries[b.dataset.fig].key;figOpen.has(k)?figOpen.delete(k):figOpen.add(k);renderSession()}
   else if(b.dataset.edx!=null){const i=+b.dataset.edx;edOpen=edOpen===i?-1:i;renderSession();const n=$("#exName"+i);if(n)n.focus()}
   else if(b.dataset.excancel){edOpen=-1;renderSession()}
-  else if(b.dataset.exok!=null){const i=+b.dataset.exok,e2=draft.entries[i];const n=$("#exName"+i).value.trim();
-    if(n&&n!==e2.name){e2.name=n;e2.key=key(n);e2.sets.forEach(s=>{if(s.auto){s.w="";delete s.auto;delete s.up}});prefill(e2)}
-    e2.uni=$("#exUni"+i).checked;e2.pdc=$("#exPdc"+i).checked;e2.target=$("#exTgt"+i).value.trim();
+  else if(b.dataset.exok!=null){const i=+b.dataset.exok,e2=draft.entries[i],src=e2.src||e2.key;let n=$("#exName"+i).value.trim();
+    const wasWu=!!e2.sets[0]?.wu,wu=$("#exWu"+i).checked;
+    if(n&&n!==e2.name){const known=exerciseList().get(stemK(key(n)));if(known)n=known.name;// même orthographe que dans le carnet
+      e2.name=n;e2.key=key(n);e2.sets.forEach(s=>{if(s.auto){s.w="";delete s.auto;delete s.up}})}
+    e2.uni=$("#exUni"+i).checked;e2.pdc=$("#exPdc"+i).checked;
+    let tg=$("#exTgt"+i).value.trim();const m=tg.match(/^(\d+)\s*[x×*]\s*(.*)$/i),work=m?Math.min(Math.max(+m[1],1),10):null;
+    if(m)tg=work+" × "+m[2].trim();e2.target=tg;
+    // autant de lignes que de séries demandées (+ l'échauffement) ; une série déjà notée n'est jamais supprimée
+    if(work!=null){const want=work+(wu?1:0);
+      while(e2.sets.length<want)e2.sets.push({w:"",r:"",g:""});
+      while(e2.sets.length>want){const x=e2.sets.at(-1);if(x.r!==""||(x.g??"")!=="")break;e2.sets.pop()}}
+    if(wu!==wasWu){e2.sets.forEach(x=>{delete x.wu;if(x.auto){x.w="";delete x.auto;delete x.up}});if(wu&&e2.sets.length>1)e2.sets[0].wu=true}
+    prefill(e2);
+    if($("#exKeep"+i)?.checked)keepInProgram(e2,src,i,work);
     edOpen=-1;save();renderSession();updateProgress(i,0)}
   else if(b.dataset.mv!=null){const i=+b.dataset.i,j=i+ +b.dataset.mv;if(j<0||j>=draft.entries.length)return;
     [draft.entries[i],draft.entries[j]]=[draft.entries[j],draft.entries[i]];edOpen=j;save();renderSession();document.getElementById("ex"+j)?.scrollIntoView({block:"center"})}
@@ -1660,8 +1707,9 @@ async function saveSession(btn){
     cardio:(k.format.trim()||k.min||k.feel)?{format:k.format.trim(),min:numOrNull(k.min),feel:k.feel}:null,
     entries:draft.entries.map(e=>({key:e.key,name:e.name,target:e.target,pdc:e.pdc,band:e.band,rpe:numOrNull(e.rpe),pain:e.pain?{lvl:+e.pain,zone:e.painZone||""}:null,
       uni:!!e.uni,sets:e.sets.map(s=>{const w=numOrNull(s.w);
-        if(e.uni){const g=numOrNull(s.g),d=numOrNull(s.r);if(g==null&&d==null)return null;return {w,r:g!=null&&d!=null?Math.min(g,d):(g??d),g,d}}
-        const r=numOrNull(s.r);return r==null?null:{w,r}}).filter(Boolean)})).filter(e=>e.sets.length)};
+        const x=s.wu?{wu:true}:{};
+        if(e.uni){const g=numOrNull(s.g),d=numOrNull(s.r);if(g==null&&d==null)return null;return {w,r:g!=null&&d!=null?Math.min(g,d):(g??d),g,d,...x}}
+        const r=numOrNull(s.r);return r==null?null:{w,r,...x}}).filter(Boolean)})).filter(e=>e.sets.length)};
   if(draft.coach)w.titre=draft.coach.titre;else if(draft.titre)w.titre=draft.titre;
   if(draft.planId)w.planId=draft.planId;
   if(!w.entries.length){msg.className="msg err";msg.textContent="Note au moins les répétitions d'une série.";return}
@@ -1799,10 +1847,10 @@ function applyCoach(j,planId){
     const n=parseSets(e.series||(Array.isArray(e.reps)?e.reps.length:3));
     const reps=Array.isArray(e.reps)&&e.reps.length?e.reps.map(String):Array(n).fill(String(e.reps??""));
     const uniq=[...new Set(reps)],label=uniq.length===1?uniq[0]:reps.join(" / ");
-    const charge=numOrNull(e.charge),rest=numOrNull(e.repos_s);
+    const charge=numOrNull(e.charge),rest=numOrNull(e.repos_s),wu=!planId&&n>1&&wuDefault(!!e.pdc,label);
     return {key:key(e.nom),name:String(e.nom),pdc:!!e.pdc,band:/[ée]lastique/i.test(e.consigne||""),uni:e.uni!=null?!!e.uni:(isUni(e.nom)||/un bras|unilat/i.test(e.consigne||"")),rpe:"",note:String(e.consigne||""),rest:rest&&rest>0?rest:null,
-      target:[n+" × "+label,charge!=null?charge+" kg":"",rest?"repos "+fmtRest(rest):""].filter(Boolean).join(" · "),
-      sets:Array.from({length:n},(_,i)=>({w:charge!=null?String(charge):"",r:"",g:"",pr:reps[i]??reps.at(-1)??""}))};
+      target:[(wu?n-1:n)+" × "+label,charge!=null?charge+" kg":"",rest?"repos "+fmtRest(rest):""].filter(Boolean).join(" · "),
+      sets:Array.from({length:n},(_,i)=>({w:charge!=null&&!(wu&&i===0)?String(charge):"",r:"",g:"",pr:reps[i]??reps.at(-1)??"",...(wu&&i===0?{wu:true}:{})}))};
   }).map(e=>{const n=e.sets.length;prefill(e);e.sets.length=Math.max(n,1);return e
   });
   if(!d.entries.length)return false;
@@ -1886,10 +1934,10 @@ function lineChart(pts,unit,opts={}){
 
 /* ---------- évolution ---------- */
 let evoPart=ls.get("evo","force"), metric=ls.get("metric","max");
-function exerciseList(){const m=new Map();for(const w of workouts)for(const e of (w.entries||[]))if(!m.has(e.key))m.set(e.key,{name:e.name,pdc:e.pdc});return m}
+function exerciseList(){const m=new Map();for(const w of workouts)for(const e of (w.entries||[])){const sk=stemK(e.key);if(!m.has(sk))m.set(sk,{name:e.name,pdc:e.pdc})}return m}
 function seriesFor(k,met){
   const out=[];
-  for(const w of [...workouts].reverse()){const e=(w.entries||[]).find(e=>e.key===k);if(!e)continue;
+  for(const w of [...workouts].reverse()){const e0=(w.entries||[]).find(e=>sameK(e.key,k));if(!e0)continue;const e={...e0,sets:workSets(e0)};
     let v=null;
     if(met==="max"){const ws=e.sets.map(s=>s.w).filter(v=>v!=null);v=ws.length?Math.max(...ws):null}
     else if(met==="1rm"){const xs=e.sets.map(s=>e1rm(s.w,s.r)).filter(Boolean);v=xs.length?Math.round(Math.max(...xs)*2)/2:null}
@@ -1970,7 +2018,7 @@ const MORDER=["pecs","delt_ant","delt_lat","delt_post","traps","lats","lowback",
 function muscleVolume(days){
   const since=new Date(Date.now()-days*864e5).toISOString().slice(0,10),v={};for(const g of MORDER)v[g]=0;
   for(const w of workouts)if(w.date>=since)for(const e of (w.entries||[])){
-    const n=(e.sets||[]).filter(s=>s&&(String(s.r??"")!==""||String(s.g??"")!=="")).length||0;if(!n)continue;
+    const n=(e.sets||[]).filter(s=>s&&!s.wu&&(String(s.r??"")!==""||String(s.g??"")!=="")).length||0;if(!n)continue;
     const m=musclesFor(e.name);for(const g of m.p)v[g]+=n;for(const g of m.s)v[g]+=n*.5}
   const k=7/days;for(const g in v)v[g]=Math.round(v[g]*k*10)/10;return v;
 }
@@ -2005,12 +2053,12 @@ function renderForce(){
   const exs=exerciseList();
   const recs=[];
   for(const [k,info] of exs){
-    const chrono=[...workouts].reverse().filter(w=>(w.entries||[]).some(e=>e.key===k));
+    const chrono=[...workouts].reverse().filter(w=>(w.entries||[]).some(e=>sameK(e.key,k)));
     const first=chrono[0];const b=bestOf(k);const useKg=b.bw!=null;
     const val=useKg?b.bw:b.br;if(val==null)continue;
     const fb=bestOf(k,[first]);const firstVal=useKg?fb.bw:fb.br;
     let date=null;
-    for(const w of chrono){const e=w.entries.find(e=>e.key===k);if(e&&e.sets.some(s=>useKg?(s.w===b.bw&&s.r===b.brAtBw):s.r===b.br)){date=w.date;break}}
+    for(const w of chrono){const e=w.entries.find(e=>sameK(e.key,k));if(e&&e.sets.some(s=>useKg?(s.w===b.bw&&s.r===b.brAtBw):s.r===b.br)){date=w.date;break}}
     recs.push({k,name:info.name,val,unit:useKg?"kg":"reps",sub:useKg&&b.brAtBw?"× "+b.brAtBw:(info.pdc?"au poids du corps":""),date:date||first.date,gain:firstVal!=null?val-firstVal:0});
   }
   const improved=recs.filter(r=>r.gain>0).length;
@@ -2026,18 +2074,18 @@ function renderForce(){
     <span class="s">${fmtDate(r.date)}${r.sub?" · "+esc(r.sub):""}</span><span class="s" style="text-align:right">${r.gain>0?`<span class="upc">+${fr(r.gain)} ${r.unit}</span> depuis le début`:"—"}</span></div>`).join(""):`<p class="empty">Tes records s'afficheront ici.</p>`;
   const sel=$("#progSel"),prev=sel.value||ls.get("ex","");
   sel.innerHTML=exs.size?[...exs].map(([k,v])=>`<option value="${esc(k)}">${esc(v.name)}</option>`).join(""):`<option value="">Aucun exercice noté</option>`;
-  if(exs.has(prev))sel.value=prev;
+  if(exs.has(stemK(prev)))sel.value=stemK(prev);
   renderExChart();renderVolume();renderBaseline();
 }
 // toucher un record ouvre la courbe de l'exercice (force estimée pour les charges)
 document.addEventListener("click",ev=>{const r=ev.target.closest("[data-reck]");if(!r)return;const sel=$("#progSel");if(!sel)return;
-  sel.value=r.dataset.reck;const hasKg=workouts.some(w=>(w.entries||[]).some(e=>e.key===sel.value&&e.sets.some(s=>s.w!=null)));metric=hasKg?"1rm":"reps";
+  sel.value=r.dataset.reck;const hasKg=workouts.some(w=>(w.entries||[]).some(e=>sameK(e.key,sel.value)&&e.sets.some(s=>s.w!=null)));metric=hasKg?"1rm":"reps";
   renderExChart();sel.closest(".card").scrollIntoView({behavior:"smooth",block:"start"})});
 const METRICS={kg:[["max","Charge max"],["1rm","1RM estimé"],["vol","Volume"]],pdc:[["reps","Meilleure série"],["total","Reps totales"]]};
 function renderExChart(){
   const k=$("#progSel").value,box=$("#progChart");if(k)ls.set("ex",k);
   const info=exerciseList().get(k);
-  const hasKg=workouts.some(w=>(w.entries||[]).some(e=>e.key===k&&e.sets.some(s=>s.w!=null)));
+  const hasKg=workouts.some(w=>(w.entries||[]).some(e=>sameK(e.key,k)&&e.sets.some(s=>s.w!=null)));
   const mets=METRICS[hasKg?"kg":"pdc"];if(!mets.some(m=>m[0]===metric))metric=mets[0][0];
   $("#metricSeg").innerHTML=mets.map(([v,l])=>`<button data-met="${v}" aria-pressed="${v===metric}">${l}</button>`).join("");
   const unit=["max","1rm","vol"].includes(metric)?"kg":"reps";
@@ -2357,7 +2405,8 @@ function drawEditor(){
       <input id="pr_${t}_${i}" aria-label="Répétitions" data-i="${i}" data-f="reps" value="${esc(ex.reps)}">
       <span class="c"><input type="checkbox" id="pp_${t}_${i}" aria-label="Poids du corps" data-i="${i}" data-f="pdc" ${ex.pdc?"checked":""}></span>
       <button class="iconbtn" aria-label="Retirer ${esc(ex.name)}" data-prm="${i}">${ico("x")}</button></div>`).join("")}
-    <div><button class="chip" id="padd">${ico("plus")}Exercice</button></div>`;
+    <div><button class="chip" id="padd">${ico("plus")}Exercice</button></div>
+    ${phaseN()>=2?`<p class="hint">Phase ${phaseN()} : sur les exercices avec charge, la 1re série est l'échauffement, plus légère. 3 séries = 1 d'échauffement + 2 de travail.</p>`:""}`;
 }
 document.querySelectorAll("#progSeg button").forEach(b=>b.addEventListener("click",()=>{progType=b.dataset.ptype;drawEditor()}));
 $("#progEditor").addEventListener("input",e=>{const x=e.target;if(x.dataset.f)editProg.sessions[progType][x.dataset.i][x.dataset.f]=x.type==="checkbox"?x.checked:x.value});
@@ -2367,7 +2416,7 @@ $("#progEditor").addEventListener("click",e=>{const b=e.target.closest("button")
   if(b.dataset.prm!=null){editProg.sessions[progType].splice(+b.dataset.prm,1);drawEditor()}});
 $("#saveProg").addEventListener("click",async()=>{
   const m=$("#progMsg");
-  for(const t of GYM)editProg.sessions[t]=editProg.sessions[t].filter(x=>String(x.name).trim()).map(x=>({name:String(x.name).trim(),sets:parseSets(x.sets),reps:String(x.reps||"").trim()||"10",pdc:!!x.pdc}));
+  for(const t of GYM)editProg.sessions[t]=editProg.sessions[t].filter(x=>String(x.name).trim()).map(x=>({name:String(x.name).trim(),sets:parseSets(x.sets),reps:String(x.reps||"").trim()||"10",pdc:!!x.pdc,...(x.wu!=null?{wu:!!x.wu}:{})}));
   editProg.warmup=$("#warmIn").value.split("\n").map(s=>s.trim()).filter(Boolean);
   editProg.baseline=program.baseline;editProg.templates=program.templates||[];editProg.phase=program.phase;
   try{await saveProgram(editProg);m.className="msg ok";m.textContent="Programme enregistré.";
