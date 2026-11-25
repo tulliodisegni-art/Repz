@@ -374,7 +374,8 @@ svg.fig{width:100%;max-width:420px;margin:0 auto;display:block}
 .fig .eq{stroke:var(--eq);stroke-width:3;fill:none;stroke-linecap:round}
 .fig .eq.fill{fill:var(--gold2);stroke:color-mix(in srgb,var(--gold2) 70%,#000);stroke-width:1}
 .fig .eq.plate{fill:var(--gold2);stroke:color-mix(in srgb,var(--gold2) 60%,#000);stroke-width:2}
-.fig .eq.thin{stroke-width:1.2} .fig .eq.bench{stroke-width:6;stroke:var(--eq-dark)} .fig .eq.bar{stroke-width:3.5;stroke:var(--eq-dark)}
+.fig .eq.thin{stroke-width:1.2} .fig .eq.dbh{stroke:var(--eq-dark);stroke-width:2.4;stroke-linecap:butt}
+.fig .eq.pad{fill:var(--eq-dark);stroke:none} .fig .eq.cush{fill:var(--eq);stroke:var(--eq-dark);stroke-width:1} .fig .eq.pivot{fill:var(--eq-dark);stroke:var(--soft);stroke-width:1} .fig .eq.bench{stroke-width:6;stroke:var(--eq-dark)} .fig .eq.bar{stroke-width:3.5;stroke:var(--eq-dark)}
 .fig .gr{stroke:var(--line2);stroke-width:2}
 .mlist{display:grid;gap:8px}
 .mrow{display:grid;grid-template-columns:minmax(104px,1.25fr) 1.6fr 32px 88px;gap:8px;align-items:center;font-size:.875rem}
@@ -1004,6 +1005,11 @@ const FIG={T:40,N:8,HR:7.6,UA:22,FA:20,TH:30,SH:28,FT:10};
 /* épaisseurs (rayons) des segments */
 const RAD={torsoH:8.6,torsoS:10,ua:[4.8,3.5],fa:[3.6,2.5],th:[7.4,4.8],sh:[4.6,2.9]};
 /* face : 1 = tourné vers la droite (ventre à droite debout), -1 = tourné vers la gauche (allongé sur le dos tête à droite) */
+/* machine pec deck : montant, barre du haut avec les 2 pivots des bras, siège, dossier */
+const PD_FRAME=`<line x1="100" y1="12" x2="100" y2="138" class="eq"/><line x1="78" y1="20" x2="122" y2="20" class="eq bar"/><circle cx="84" cy="20" r="2.6" class="eq pivot"/><circle cx="116" cy="20" r="2.6" class="eq pivot"/>`;
+const PD_POST=`<line x1="100" y1="107" x2="100" y2="138" class="eq"/><line x1="90" y1="139" x2="110" y2="139" class="eq bench"/>`;
+const PD_CUSH=`<rect x="80" y="100" width="40" height="8" rx="3.5" class="eq cush"/>`;
+const PD_PAD=`<rect x="87" y="30" width="26" height="72" rx="6" class="eq pad"/>`;
 const EXOS=[
  {id:"austro",k:/australienne|australian|inverted row|rowing inverse/,name:"Traction australienne",face:-1,
   m:{p:["lats","traps","delt_post"],s:["biceps","forearm","abs"]},
@@ -1017,8 +1023,8 @@ const EXOS=[
  {id:"dips",ct:0,k:/\bdips?\b/,name:"Dips",
   m:{p:["pecs","triceps"],s:["delt_ant"]},
   cues:["Épaules basses, buste légèrement penché","Descends jusqu'à avoir les coudes à 90°","Remonte bras tendus sans verrouiller fort"],
-  st:`<line x1="84" y1="82" x2="138" y2="82" class="eq bar"/><line x1="132" y1="82" x2="132" y2="140" class="eq"/>`,
-  f:[{p:[100,79],t:8,H:[105,81],eb:1,A:[84,114],kb:-1,ft:50},{p:[100,99],t:20,H:[105,81],eb:1,A:[84,132],kb:-1,ft:50}]},
+  st:`<line x1="84" y1="72" x2="138" y2="72" class="eq bar"/><line x1="132" y1="72" x2="132" y2="140" class="eq"/>`,
+  f:[{p:[100,69],t:8,H:[105,71],eb:1,A:[84,104],kb:-1,ft:50},{p:[100,89],t:20,H:[105,71],eb:1,A:[84,120],kb:-1,ft:50}]},
  {id:"ohp",k:/militaire|overhead press|shoulder press|developpe epaule|press epaule/,name:"Développé militaire",
   m:{p:["delt_ant","delt_lat"],s:["triceps","traps"]},
   cues:["Assis ou debout, gainage serré, pas de cambrure","Haltères à hauteur d'épaules au départ","Pousse au-dessus de la tête, bras presque tendus"],
@@ -1045,25 +1051,31 @@ const EXOS=[
   f:[{p:[82,106],t:-6,H:[100,74],eb:1,A:[114,134],kb:-1,ft:95},{p:[82,106],t:-6,H:[132,70],eb:1,A:[114,134],kb:-1,ft:95}]},
  {id:"lateral",k:/elevation.*lat|lateral raise/,name:"Élévations latérales",front:true,
   m:{p:["delt_lat"],s:["traps","delt_ant"]},
-  cues:["Coudes légèrement fléchis","Monte les bras sur les côtés jusqu'aux épaules","Redescends lentement, sans élan"],
+  cues:["Un haltère dans chaque main, bras le long du corps","Monte les bras tendus sur les côtés jusqu'à hauteur d'épaules, sans plier les coudes","Redescends lentement, sans élan"],
   att:"db",
-  f:[{p:[100,80],H:[116,84],A:[107,138]},{p:[100,80],H:[150,42],A:[107,138]}]},
- {id:"revfly",k:/pec ?deck invers|oiseau|face ?pull|reverse fly|deltoide post/,name:"Oiseau / pec deck inversé",front:true,back:true,
-  m:{p:["delt_post"],s:["traps","lats"]},
-  cues:["Bras devant toi à hauteur d'épaules","Ouvre les bras vers l'arrière en serrant les omoplates","Reviens lentement"],
-  f:[{p:[100,80],H:[112,46],A:[107,138]},{p:[100,80],H:[150,44],A:[107,138]}]},
+  f:[{p:[100,80],ar:[9,12],A:[107,138]},{p:[100,80],ar:[86,89],A:[107,138]}]},
+ {id:"revfly",k:/pec ?deck invers|reverse pec|butterfly invers|oiseau (a la )?machine|reverse fly machine|machine reverse fly|rear delt machine|deltoide post.*machine/,name:"Pec deck inversé",front:true,back:true,seated:true,
+  m:{p:["delt_post"],s:["traps"]},
+  cues:["Assis face à la machine, poitrine contre le dossier, poignées à hauteur d'épaules","Bras tendus, ouvre-les sur les côtés en serrant les omoplates","Reviens lentement devant toi, sans plier les coudes"],
+  st:PD_FRAME+PD_POST,st2:PD_CUSH,att:"pecdeck",
+  f:[{p:[100,100],ar:[90,90],hz:76},{p:[100,100],ar:[90,90],hz:-4}]},
+ {id:"pecdeck",k:/pec ?deck|butterfly|ecarte.*machine|machine.*ecarte|fly machine|machine fly/,name:"Pec deck (butterfly)",front:true,seated:true,armTop:true,
+  m:{p:["pecs"],s:["delt_ant"]},
+  cues:["Dos collé au dossier, poignées à hauteur d'épaules","Bras tendus, ramène les poignées devant ta poitrine","Rouvre lentement jusqu'à sentir l'étirement des pecs, sans plier les coudes"],
+  st:PD_FRAME+PD_PAD+PD_POST+PD_CUSH,att:"pecdeck",elev:18,
+  f:[{p:[100,100],ar:[90,90],hz:-2},{p:[100,100],ar:[90,90],hz:100}]},
  {id:"tri_oh",k:/triceps.*(arriere|nuque|overhead|au dessus|derriere la tete)|extension.*(nuque|au dessus)/,name:"Extension triceps au-dessus de la tête",
   m:{p:["triceps"],s:["delt_post"]},
   cues:["Dos à la poulie, coudes près de la tête et pointés vers l'avant","Tends les bras vers l'avant et le haut","Reviens en pliant seulement les coudes"],
   st:`<line x1="44" y1="-12" x2="44" y2="140" class="eq"/><circle cx="48" cy="20" r="3" class="eq"/>`,
   att:"cable",pulley:[48,20],
-  f:[{p:[100,82],t:14,Hs:[-5,-6],eb:-1,A:[122,138],A2:[86,138],kb:-1,kb2:-1},{p:[100,82],t:14,Hs:[24,-36],eb:-1,A:[122,138],A2:[86,138],kb:-1,kb2:-1}]},
+  f:[{p:[100,82],t:14,ar:[140,-80],A:[122,138],A2:[86,138],kb:-1,kb2:-1},{p:[100,82],t:14,ar:[140,-220],A:[122,138],A2:[86,138],kb:-1,kb2:-1}]},
  {id:"triceps",k:/triceps|corde|pushdown/,name:"Extension triceps à la poulie",
   m:{p:["triceps"],s:["forearm"]},
   cues:["Coudes collés au corps et immobiles","Pousse vers le bas jusqu'à bras tendus","Écarte la corde en bas, remonte doucement"],
   st:`<line x1="148" y1="-12" x2="148" y2="140" class="eq"/><circle cx="144" cy="-6" r="3" class="eq"/>`,
   att:"cable",pulley:[144,-6],
-  f:[{p:[98,82],t:10,H:[116,46],eb:1,A:[104,138]},{p:[98,82],t:10,H:[112,86],eb:1,A:[104,138]}]},
+  f:[{p:[98,82],t:10,ar:[-2,112],A:[104,138]},{p:[98,82],t:10,ar:[-2,-1],A:[104,138]}]},
  {id:"latpull",k:/tirage vertical|lat ?pull|pull ?down|tirage poitrine|tirage nuque/,name:"Tirage vertical",
   m:{p:["lats"],s:["biceps","delt_post","traps","forearm"]},
   cues:["Buste légèrement penché en arrière","Tire la barre vers le haut de la poitrine","Serre les omoplates, remonte bras tendus"],
@@ -1085,7 +1097,7 @@ const EXOS=[
  {id:"rowbent",k:/rowing|\brow\b|tirage buste penche/,name:"Rowing buste penché",
   m:{p:["lats","traps"],s:["delt_post","biceps","lowback","hams"]},
   cues:["Buste penché, dos plat, genoux un peu fléchis","Tire la charge vers le bas du ventre","Coudes près du corps, redescends contrôlé"],
-  att:"db",
+  att:"dbn",
   f:[{p:[90,84],t:70,H:[124,124],eb:1,A:[100,138],kb:-1},{p:[90,84],t:70,H:[112,96],eb:1,A:[100,138],kb:-1}]},
  {id:"chinup",k:/chin/,name:"Chin-up (supination)",
   m:{p:["lats","biceps"],s:["forearm","traps"]},
@@ -1101,24 +1113,24 @@ const EXOS=[
   m:{p:["quads"],s:[]},
   cues:["Dos calé, genoux au bord du siège","Tends les jambes jusqu'en haut","Redescends lentement sans laisser tomber"],
   st:`<line x1="62" y1="110" x2="104" y2="110" class="eq bench"/><line x1="68" y1="110" x2="66" y2="56" class="eq bench"/><line x1="84" y1="110" x2="84" y2="140" class="eq"/>`,
-  att:"pad",
-  f:[{p:[82,106],t:-6,H:[96,108],eb:-1,A:[110,134],kb:-1,ft:80},{p:[82,106],t:-6,H:[96,108],eb:-1,A:[139,100],kb:-1,ft:5}]},
+  att:"lever",pad:1,
+  f:[{p:[82,106],t:-6,H:[96,108],eb:-1,lg:[86,-6],ft:84},{p:[82,106],t:-6,H:[96,108],eb:-1,lg:[86,84],ft:172}]},
  {id:"legcurl",k:/leg ?curl|ischio/,name:"Leg curl",
   m:{p:["hams"],s:["calves"]},
   cues:["Bassin bien plaqué contre le banc","Ramène les talons vers les fesses","Redescends lentement sans laisser tomber"],
   st:`<line x1="40" y1="106" x2="146" y2="106" class="eq bench"/><line x1="56" y1="106" x2="56" y2="140" class="eq"/><line x1="130" y1="106" x2="130" y2="140" class="eq"/>`,
-  att:"pad",
-  f:[{p:[92,99],t:90,H:[140,112],eb:1,A:[35,99],kb:-1,ft:-90},{p:[92,99],t:90,H:[140,112],eb:1,A:[66,72],kb:-1,ft:-150}]},
+  att:"lever",pad:-1,
+  f:[{p:[92,99],t:90,H:[140,112],eb:1,lg:[-90,-90],ft:-90},{p:[92,99],t:90,H:[140,112],eb:1,lg:[-90,-196],ft:-106}]},
  {id:"hammer",k:/marteau|hammer/,name:"Curl marteau",
   m:{p:["biceps","forearm"],s:[]},
   cues:["Pouces vers le haut, coude fixe","Monte la charge sans balancer le buste","Redescends jusqu'à bras presque tendu"],
-  att:"dbv",
-  f:[{p:[100,80],t:0,H:[104,83],eb:1,A:[100,138]},{p:[100,80],t:0,H:[110,46],eb:1,A:[100,138]}]},
+  att:"dbn",
+  f:[{p:[100,80],t:0,ar:[4,12],A:[100,138]},{p:[100,80],t:0,ar:[1,140],A:[100,138]}]},
  {id:"curl",k:/curl/,name:"Curl biceps",
   m:{p:["biceps"],s:["forearm"]},
   cues:["Coude fixe contre le corps","Monte la charge en contrôlant, sans balancer","Redescends jusqu'à bras presque tendu"],
   att:"db",
-  f:[{p:[100,80],t:0,H:[104,83],eb:1,A:[100,138]},{p:[100,80],t:0,H:[110,46],eb:1,A:[100,138]}]},
+  f:[{p:[100,80],t:0,ar:[4,12],A:[100,138]},{p:[100,80],t:0,ar:[1,140],A:[100,138]}]},
  {id:"legpress",k:/presse/,name:"Presse à cuisses",
   m:{p:["quads","glutes"],s:["adductors","hams"]},
   cues:["Dos et bassin collés au dossier","Descends jusqu'à genoux à 90°","Pousse avec les talons sans verrouiller les genoux"],
@@ -1128,7 +1140,7 @@ const EXOS=[
  {id:"lunge",ct:0,k:/fente|lunge|bulgare/,name:"Fentes",
   m:{p:["quads","glutes"],s:["adductors","hams","calves"]},
   cues:["Grand pas en avant, buste droit","Descends jusqu'à ce que le genou arrière frôle le sol","Pousse sur le talon avant pour remonter"],
-  att:"db",
+  att:"dbn",
   f:[{p:[100,80],t:0,arm:"hang",eb:-1,A:[114,138],A2:[86,138],kb:-1,kb2:-1},{p:[98,104],t:0,arm:"hang",eb:-1,A:[124,138],A2:[66,136],kb:-1,kb2:-1,ft2:60}]},
  {id:"hipthrust",k:/hip ?thrust|pont fessier|glute bridge/,name:"Hip thrust",
   m:{p:["glutes"],s:["hams","quads"]},
@@ -1162,11 +1174,11 @@ const EXOS=[
  {id:"backext",k:/lombaire|hyperextension|extension du dos|back extension/,name:"Extension lombaire",
   m:{p:["lowback"],s:["glutes","hams"]},
   cues:["Bassin calé contre le coussin","Descends le buste dos plat","Remonte jusqu'à l'alignement, sans hyper-cambrer"],
-  st:`<line x1="96" y1="102" x2="110" y2="88" class="eq bench"/><line x1="56" y1="134" x2="70" y2="124" class="eq bench"/><line x1="100" y1="100" x2="100" y2="140" class="eq"/>`,
-  f:[{p:[100,92],t:150,Hs:[-6,-12],eb:-1,A:[62,128],kb:1,ft:-60},{p:[100,92],t:47,Hs:[-6,-12],eb:-1,A:[62,128],kb:1,ft:-60}]}
+  st:`<line x1="96" y1="92" x2="110" y2="78" class="eq bench"/><line x1="56" y1="124" x2="70" y2="114" class="eq bench"/><line x1="102" y1="88" x2="102" y2="140" class="eq"/><line x1="63" y1="120" x2="63" y2="140" class="eq"/><line x1="63" y1="131" x2="102" y2="131" class="eq"/>`,
+  f:[{p:[100,82],t:138,Hs:[-6,-12],eb:-1,A:[62,118],kb:1,ft:-60},{p:[100,82],t:47,Hs:[-6,-12],eb:-1,A:[62,118],kb:1,ft:-60}]}
 ];
 /* repli : muscles devinés d'après le nom quand l'exercice n'a pas de schéma */
-const MFALL=[[/pec|ecarte|butterfly|chest/,{p:["pecs"],s:["delt_ant"]}],[/epaule|arnold|deltoide/,{p:["delt_ant","delt_lat"],s:["triceps"]}],
+const MFALL=[[/oiseau|reverse fly|rear delt|deltoide post|face ?pull/,{p:["delt_post"],s:["traps"]}],[/pec|ecarte|butterfly|chest/,{p:["pecs"],s:["delt_ant"]}],[/epaule|arnold|deltoide/,{p:["delt_ant","delt_lat"],s:["triceps"]}],
  [/shrug|trap/,{p:["traps"],s:[]}],[/dos|lat|tirage/,{p:["lats"],s:["biceps"]}],[/biceps/,{p:["biceps"],s:["forearm"]}],[/triceps|barre au front|kickback/,{p:["triceps"],s:[]}],
  [/avant bras|poignet|grip/,{p:["forearm"],s:[]}],[/oblique|rotation|russian/,{p:["obliques"],s:["abs"]}],[/fessier|glute|abduct/,{p:["glutes"],s:[]}],
  [/adduct/,{p:["adductors"],s:[]}],[/quadri|cuisse/,{p:["quads"],s:[]}],[/ischio|hamstring/,{p:["hams"],s:[]}],[/jambe/,{p:["quads"],s:["glutes"]}]];
@@ -1256,6 +1268,11 @@ function shoeSVG(ankle,toe,knee,far){const fwd=[toe[0]-ankle[0],toe[1]-ankle[1]]
   return `<path class="shoe${far?" far":""}" d="${smoothD(S,.4)}"/><path class="sole" d="M${f1(sole[0][0])} ${f1(sole[0][1])}L${f1(sole[1][0])} ${f1(sole[1][1])}"/>`}
 function handSVG(E,W,far){const F=frame(E,W),c=[W[0]+F.tx*1.6,W[1]+F.ty*1.6];
   return `<ellipse class="bd${far?" far":""}" fill="${far?"var(--skf)":"var(--sk)"}" cx="${f1(c[0])}" cy="${f1(c[1])}" rx="3.4" ry="2.7" transform="rotate(${f1(Math.atan2(F.ty,F.tx)*180/Math.PI)} ${f1(c[0])} ${f1(c[1])})"/>`}
+/* haltère tenu en main : poignée + 2 disques. ax = axe de la poignée ; k = 1 vu de côté (prise neutre), plus petit = vu de biais (disques vus plus de face) */
+function dbSVG(c,ax,k){const h=1.4+6.2*k,w=3+4*(1-k),r=Math.min(w/2,1.1+3*(1-k)),ang=Math.atan2(ax[1],ax[0])*180/Math.PI;
+  const at=t=>[c[0]+ax[0]*t,c[1]+ax[1]*t],a=at(h),b=at(-h),ia=at(h-w/2),ib=at(-h+w/2);
+  const plate=q=>`<rect x="${f1(q[0]-w/2)}" y="${f1(q[1]-5.6)}" width="${f1(w)}" height="11.2" rx="${f1(r)}" transform="rotate(${f1(ang)} ${f1(q[0])} ${f1(q[1])})" class="eq fill"/>`;
+  return plate(a)+`<line x1="${f1(ia[0])}" y1="${f1(ia[1])}" x2="${f1(ib[0])}" y2="${f1(ib[1])}" class="eq dbh"/>`+plate(b)}
 function mcls(x,g){return x.m.p.includes(g)?"mu m1":x.m.s.includes(g)?"mu m2":null}
 function figSVG(x,u,pid){
   FDEFS="";FGID=0;FPID=(pid||x.id)+"_";
@@ -1266,17 +1283,26 @@ function figSVG(x,u,pid){
   const hip=P.p;
   if(x.front){
     /* ---- vue de face (ou de dos) ---- */
-    const sh=[hip[0],hip[1]-FIG.T];let limbs="",mus="",shorts="";const hands=[];
+    const sh=[hip[0],hip[1]-FIG.T];let legsS="",armsS="",mus="",shorts="",grips="",eqb="",eq="";
     const SYM=k=>({u:PROF[k].u,a:PROF[k].u.map((_,i)=>(PROF[k].a[i]+PROF[k].b[i])/2),b:PROF[k].u.map((_,i)=>(PROF[k].a[i]+PROF[k].b[i])/2)});
     const thS=SYM("th"),shS=SYM("sh"),uaS=SYM("ua"),faS=SYM("fa");
+    // hz : rotation des bras à l'horizontale (0 = sur les côtés, 90 = droit devant) ; vus de face ils raccourcissent
+    const seat=!!x.seated,kx=Math.cos(rad(P.hz||0));
     for(const sgn of [1,-1]){
-      const S=[hip[0]+sgn*11.5,sh[1]+4],Ht=[hip[0]+sgn*(P.H[0]-hip[0]),P.H[1]];const a=ik(S,Ht,FIG.UA,FIG.FA,sgn);hands.push(a.e);
-      const Hp=[hip[0]+sgn*6,hip[1]+1],At=[hip[0]+sgn*(P.A[0]-hip[0]),P.A[1]];const l=ik(Hp,At,FIG.TH,FIG.SH,-sgn);
-      limbs+=limb(Hp,l.m,thS,1,false,.98)+limb(l.m,l.e,shS,1,false,.98)+`<path class="shoe" d="M${f1(l.e[0]-3.4)} ${f1(l.e[1]+.4)}C${f1(l.e[0]-4)} ${f1(l.e[1]+4.6)} ${f1(l.e[0]+4)} ${f1(l.e[1]+4.6)} ${f1(l.e[0]+3.4)} ${f1(l.e[1]+.4)}Z"/><path class="sole" d="M${f1(l.e[0]-3.4)} ${f1(l.e[1]+3.6)}L${f1(l.e[0]+3.4)} ${f1(l.e[1]+3.6)}"/>`;
-      limbs+=limb(S,a.m,uaS,1,false,.92)+limb(a.m,a.e,faS,1)+handSVG(a.m,a.e);
-      limbs+=defLine(S,a.m,uaS,1,.32,.9,.05);
-      const Fq=frame(Hp,l.m);const sp=[Fq.P(-.08,-sgn*7.8),Fq.P(.3,-sgn*7.6),Fq.P(.3,sgn*7.8),Fq.P(-.1,sgn*8.4)];
-      shorts+=`<path class="shorts" d="${smoothD(sp,.3)}"/>`;
+      const S=[hip[0]+sgn*11.5,sh[1]+4];let a;
+      // bras par angles (0 = vers le bas, 90 = vers l'extérieur) : il pivote à l'épaule sans changer de longueur
+      if(P.ar){const a1=rad(P.ar[0]),a2=rad(P.ar[1]),kz=Math.sin(rad(P.hz||0))*Math.sin(rad(x.elev||0));
+        // elev : vue légèrement plongeante, ce qui avance vers nous descend un peu à l'écran
+        const seg=(o,L,an)=>{const lx=L*Math.sin(an);return [o[0]+sgn*lx*kx,o[1]+L*Math.cos(an)+lx*kz]};
+        const m=seg(S,FIG.UA,a1);a={m,e:seg(m,FIG.FA,a2)}}
+      else{const Ht=[hip[0]+sgn*(P.H[0]-hip[0]),P.H[1]];a=ik(S,Ht,FIG.UA,FIG.FA,sgn)}
+      const Hp=[hip[0]+sgn*6,hip[1]+1];
+      // assis : cuisses vers l'avant (raccourcies), jambes à la verticale
+      const l=seat?{m:[hip[0]+sgn*9.5,hip[1]+7],e:[hip[0]+sgn*10.5,138]}:ik(Hp,[hip[0]+sgn*(P.A[0]-hip[0]),P.A[1]],FIG.TH,FIG.SH,-sgn);
+      legsS+=limb(Hp,l.m,thS,1,false,.98)+limb(l.m,l.e,shS,1,false,.98)+`<path class="shoe" d="M${f1(l.e[0]-3.4)} ${f1(l.e[1]+.4)}C${f1(l.e[0]-4)} ${f1(l.e[1]+4.6)} ${f1(l.e[0]+4)} ${f1(l.e[1]+4.6)} ${f1(l.e[0]+3.4)} ${f1(l.e[1]+.4)}Z"/><path class="sole" d="M${f1(l.e[0]-3.4)} ${f1(l.e[1]+3.6)}L${f1(l.e[0]+3.4)} ${f1(l.e[1]+3.6)}"/>`;
+      armsS+=limb(S,a.m,uaS,1,false,.92)+limb(a.m,a.e,faS,1)+handSVG(a.m,a.e)+defLine(S,a.m,uaS,1,.32,.9,.05);
+      if(!seat){const Fq=frame(Hp,l.m);const sp=[Fq.P(-.08,-sgn*7.8),Fq.P(.3,-sgn*7.6),Fq.P(.3,sgn*7.8),Fq.P(-.1,sgn*8.4)];
+        shorts+=`<path class="shorts" d="${smoothD(sp,.3)}"/>`}
       let c;
       if(c=has("quads"))mus+=muscleOn(Hp,l.m,thS,1,.2,.92,0,c);
       if(c=has("adductors"))mus+=muscleOn(Hp,l.m,thS,1,.25,.6,-sgn,c);
@@ -1284,9 +1310,15 @@ function figSVG(x,u,pid){
       if(c=has("biceps")||has("triceps"))mus+=muscleOn(S,a.m,uaS,1,.3,.92,0,c);
       if(c=has("forearm"))mus+=muscleOn(a.m,a.e,faS,1,.05,.6,0,c);
       const dl=has("delt_lat")||has("delt_post")||has("delt_ant");
-      const v=[a.m[0]-S[0],a.m[1]-S[1]],L=Math.hypot(...v),dc=[S[0]+v[0]/L*2.5,S[1]+v[1]/L*2.5],ang=Math.atan2(v[1],v[0])*180/Math.PI;
-      limbs+=`<ellipse class="bd" fill="var(--sk)" cx="${f1(dc[0])}" cy="${f1(dc[1])}" rx="7" ry="6" transform="rotate(${f1(ang)} ${f1(dc[0])} ${f1(dc[1])})"/>`;
+      const v=[a.m[0]-S[0],a.m[1]-S[1]],L=Math.hypot(...v)||1,dc=[S[0]+v[0]/L*2.5,S[1]+v[1]/L*2.5],ang=Math.atan2(v[1],v[0])*180/Math.PI;
+      armsS+=`<ellipse class="bd" fill="var(--sk)" cx="${f1(dc[0])}" cy="${f1(dc[1])}" rx="7" ry="6" transform="rotate(${f1(ang)} ${f1(dc[0])} ${f1(dc[1])})"/>`;
       if(dl)mus+=`<ellipse class="${dl}" cx="${f1(dc[0])}" cy="${f1(dc[1])}" rx="6.2" ry="5.2" transform="rotate(${f1(ang)} ${f1(dc[0])} ${f1(dc[1])})"/>`;
+      const Fh=frame(a.m,a.e),g=[a.e[0]+Fh.tx*1.6,a.e[1]+Fh.ty*1.6];// centre du poing
+      // pec deck : bras de la machine qui partent des pivots du haut, poignée verticale dans la main
+      if(x.att==="pecdeck"){const pv=[hip[0]+sgn*16,20];
+        eqb+=`<path class="eq" stroke-linejoin="round" d="M${f1(pv[0])} ${f1(pv[1])}L${f1(g[0])} ${f1(pv[1])}L${f1(g[0])} ${f1(g[1]-8)}"/>`;
+        grips+=Ln([g[0],g[1]-8],[g[0],g[1]+7],"eq bar")}
+      if(x.att==="db")eq+=dbSVG(g,[-Fh.ty,Fh.tx],x.dbk??.5)+handSVG(a.m,a.e);
     }
     // tronc en V : épaules larges, taille fine, dégradé horizontal
     const X=(dx)=>f1(hip[0]+dx),Y=(dy)=>f1(sh[1]+dy);
@@ -1310,8 +1342,13 @@ function figSVG(x,u,pid){
       `<ellipse class="ear" cx="${f1(hc[0]-6.2)}" cy="${f1(hc[1]+.6)}" rx="1.3" ry="2.3"/><ellipse class="ear" cx="${f1(hc[0]+6.2)}" cy="${f1(hc[1]+.6)}" rx="1.3" ry="2.3"/>`+
       (x.back?`<path class="hair" d="M${f1(hc[0]-6.6)} ${f1(hc[1]+2)}C${f1(hc[0]-7.4)} ${f1(hc[1]-9.6)} ${f1(hc[0]+7.4)} ${f1(hc[1]-9.6)} ${f1(hc[0]+6.6)} ${f1(hc[1]+2)}C${f1(hc[0]+3)} ${f1(hc[1]+3.6)} ${f1(hc[0]-3)} ${f1(hc[1]+3.6)} ${f1(hc[0]-6.6)} ${f1(hc[1]+2)}Z"/>`
         :`<path class="hair" d="M${f1(hc[0]-6.4)} ${f1(hc[1]-1)}C${f1(hc[0]-7.2)} ${f1(hc[1]-10)} ${f1(hc[0]+7.2)} ${f1(hc[1]-10)} ${f1(hc[0]+6.4)} ${f1(hc[1]-1)}C${f1(hc[0]+4.6)} ${f1(hc[1]-5.2)} ${f1(hc[0]-4.6)} ${f1(hc[1]-5.2)} ${f1(hc[0]-6.4)} ${f1(hc[1]-1)}Z"/><circle class="eye" cx="${f1(hc[0]-2.4)}" cy="${f1(hc[1]+.4)}" r=".8"/><circle class="eye" cx="${f1(hc[0]+2.4)}" cy="${f1(hc[1]+.4)}" r=".8"/><path class="def" d="M${f1(hc[0]-1.6)} ${f1(hc[1]+5.2)}Q${f1(hc[0])} ${f1(hc[1]+6)} ${f1(hc[0]+1.6)} ${f1(hc[1]+5.2)}"/>`);
-    let eq="";if(x.att==="db")for(const h of hands)eq+=`<rect x="${f1(h[0]-2.6)}" y="${f1(h[1]-7)}" width="5.2" height="14" rx="1.6" class="eq fill"/>`;
-    return `<defs>${FDEFS}</defs><line x1="-60" y1="140" x2="260" y2="140" class="gr"/>${x.st||""}${limbs}${limb(neckA,neckB,PROF.nk,1)}<path class="bd" fill="url(#${tg})" d="${smoothD(tpts,.35)}"/>${defs}${shorts}${headF}${tm}${mus}${eq}`;
+    // assis : short posé sur le siège (fesses vues de dos, cuisses vues de face)
+    const Xh=dx=>f1(hip[0]+dx),Yh=dy=>f1(hip[1]+dy);
+    if(seat)shorts=x.back?`<path class="shorts" d="M${Xh(-12.8)} ${Yh(-7)}C${Xh(-14.8)} ${Yh(2)} ${Xh(-12.8)} ${Yh(7.8)} ${Xh(-6.6)} ${Yh(7.9)}C${Xh(-2.8)} ${Yh(8)} ${Xh(-.9)} ${Yh(6.6)} ${Xh(0)} ${Yh(5.2)}C${Xh(.9)} ${Yh(6.6)} ${Xh(2.8)} ${Yh(8)} ${Xh(6.6)} ${Yh(7.9)}C${Xh(12.8)} ${Yh(7.8)} ${Xh(14.8)} ${Yh(2)} ${Xh(12.8)} ${Yh(-7)}Z"/>`
+      :`<path class="shorts" d="M${Xh(-12.6)} ${Yh(-7)}L${Xh(12.6)} ${Yh(-7)}C${Xh(15.4)} ${Yh(-1)} ${Xh(15.8)} ${Yh(5)} ${Xh(15)} ${Yh(8.6)}L${Xh(4.2)} ${Yh(8.6)}C${Xh(3.4)} ${Yh(5.4)} ${Xh(-3.4)} ${Yh(5.4)} ${Xh(-4.2)} ${Yh(8.6)}L${Xh(-15)} ${Yh(8.6)}C${Xh(-15.8)} ${Yh(5)} ${Xh(-15.4)} ${Yh(-1)} ${Xh(-12.6)} ${Yh(-7)}Z"/>`;
+    // bras devant le corps (pec deck vu de face) : dessinés par-dessus le tronc
+    const top=!!x.armTop;
+    return `<defs>${FDEFS}</defs><line x1="-60" y1="140" x2="260" y2="140" class="gr"/>${x.st||""}${eqb}${legsS}${x.st2||""}${top?"":grips+armsS}${limb(neckA,neckB,PROF.nk,1)}<path class="bd" fill="url(#${tg})" d="${smoothD(tpts,.35)}"/>${defs}${shorts}${headF}${tm}${top?grips+armsS:""}${mus}${eq}`;
   }
   /* ---- profil ---- */
   const ux=Math.sin(rad(P.t)),uy=-Math.cos(rad(P.t));
@@ -1334,7 +1371,7 @@ function figSVG(x,u,pid){
     }return g};
   const drawArm=(A,far,mus)=>{const s1=sideOf(A.s,A.e,ant),s2=sideOf(A.e,A.w,ant);
     // deltoïde : coiffe arrondie sur l'épaule, sous le bras
-    const v=[A.e[0]-A.s[0],A.e[1]-A.s[1]],L=Math.hypot(...v),dc=[A.s[0]+v[0]/L*2.6,A.s[1]+v[1]/L*2.6],ang=Math.atan2(v[1],v[0])*180/Math.PI;
+    const v=[A.e[0]-A.s[0],A.e[1]-A.s[1]],L=Math.hypot(...v)||1,dc=[A.s[0]+v[0]/L*2.6,A.s[1]+v[1]/L*2.6],ang=Math.atan2(v[1],v[0])*180/Math.PI;
     let g=`<ellipse class="bd${far?" far":""}" fill="${cylGrad(A.s,A.e,6,far)}" cx="${f1(dc[0])}" cy="${f1(dc[1])}" rx="6.6" ry="5.6" transform="rotate(${f1(ang)} ${f1(dc[0])} ${f1(dc[1])})"/>`;
     g+=limb(A.s,A.e,PROF.ua,s1,far)+limb(A.e,A.w,PROF.fa,s2,far)+handSVG(A.e,A.w,far);
     if(!far)g+=defLine(A.s,A.e,PROF.ua,s1,.36,.9,.02);
@@ -1349,9 +1386,15 @@ function figSVG(x,u,pid){
   const S=[sh[0]-ant[0]*1.2,sh[1]-ant[1]*1.2];
   let arm;
   if(P.arm==="hang")arm={s:S,e:[S[0]+ant[0]*1.2,S[1]+FIG.UA],w:[S[0]+ant[0]*2.5,S[1]+FIG.UA+FIG.FA-1]};
+  // bras par angles (0 = vers le bas, 90 = vers l'avant) : coude fixe quand seul l'avant-bras bouge (curl, triceps)
+  else if(P.ar){const a1=rad(P.ar[0]),a2=rad(P.ar[1]),e=[S[0]+FIG.UA*Math.sin(a1)*F,S[1]+FIG.UA*Math.cos(a1)];arm={s:S,e,w:[e[0]+FIG.FA*Math.sin(a2)*F,e[1]+FIG.FA*Math.cos(a2)]}}
   else{const Ht=P.Hs?[sh[0]+ant[0]*P.Hs[0]-ux*P.Hs[1],sh[1]+ant[1]*P.Hs[0]-uy*P.Hs[1]]:P.H;arm=armOf(S,Ht,P.eb??1)}
-  const L1=leg(P.A,P.kb??1,P.ft,false);
-  const L2=P.A2?leg(P.A2,P.kb2??P.kb??1,P.ft2,true):leg([P.A[0]-ant[0]*1.5,P.A[1]-ant[1]*1.5],P.kb??1,P.ft,true);
+  // jambe par angles (cuisse, tibia) : la cuisse reste en place quand seul le genou plie (leg extension, leg curl)
+  const legA=(b,ft,far)=>{const H0=far?[hip[0]-ant[0]*1.5,hip[1]-ant[1]*1.5]:hip,b1=rad(b[0]),b2=rad(b[1]);
+    const k=[H0[0]+FIG.TH*Math.sin(b1)*F,H0[1]+FIG.TH*Math.cos(b1)],a=[k[0]+FIG.SH*Math.sin(b2)*F,k[1]+FIG.SH*Math.cos(b2)],fa=rad(ft??90);
+    return {h:H0,k,a,toe:[a[0]+FIG.FT*Math.sin(fa)*F,a[1]+FIG.FT*Math.cos(fa)]}};
+  const L1=P.lg?legA(P.lg,P.ft,false):leg(P.A,P.kb??1,P.ft,false);
+  const L2=P.lg?legA(P.lg2||P.lg,P.ft2??P.ft,true):P.A2?leg(P.A2,P.kb2??P.kb??1,P.ft2,true):leg([P.A[0]-ant[0]*1.5,P.A[1]-ant[1]*1.5],P.kb??1,P.ft,true);
   const arm2=P.arm==="hang"?{s:[arm.s[0]-ant[0]*2,arm.s[1]-1.5],e:[arm.e[0]-ant[0]*2,arm.e[1]-1.5],w:[arm.w[0]-ant[0]*2,arm.w[1]-1.5]}
     :{s:[arm.s[0]-ant[0]*1.5-ux*1.5,arm.s[1]-ant[1]*1.5-uy*1.5],e:[arm.e[0]-1.8,arm.e[1]-1.4],w:[arm.w[0]-1.6,arm.w[1]-1.2]};
   back+=drawLeg(L2,true,false)+drawArm(arm2,true,false);
@@ -1376,12 +1419,14 @@ function figSVG(x,u,pid){
   front+=drawLeg(L1,false,true)+drawArm(arm,false,true);
   const a=x.att,h=arm.w;
   if(a==="bar")eqf+=`<circle cx="${f1(h[0])}" cy="${f1(h[1])}" r="8" class="eq plate"/><circle cx="${f1(h[0])}" cy="${f1(h[1])}" r="2" class="eq fill"/>`;
-  if(a==="db")eqf+=`<rect x="${f1(h[0]-7)}" y="${f1(h[1]-2.6)}" width="14" height="5.2" rx="2" class="eq fill"/>`;
-  if(a==="dbv")eqf+=`<rect x="${f1(h[0]-2.6)}" y="${f1(h[1]-7)}" width="5.2" height="14" rx="2" class="eq fill"/>`;
+  // haltère : de côté en prise neutre (dbn), de biais sinon ; la main est redessinée par-dessus la poignée
+  if(a==="db"||a==="dbn"){const Fh=frame(arm.e,arm.w),g=[h[0]+Fh.tx*1.6,h[1]+Fh.ty*1.6];eqf+=dbSVG(g,[-Fh.ty,Fh.tx],a==="dbn"?1:x.dbk??.42)+handSVG(arm.e,arm.w,false)}
   if(a==="cable")eqb+=Ln(x.pulley,h,"eq thin")+C(h,2.6,"eq fill");
   if(a==="pullbar")eqb+=Ln(x.pulley,[h[0],h[1]],"eq thin")+`<line x1="${f1(h[0]-16)}" y1="${f1(h[1]-1)}" x2="${f1(h[0]+16)}" y2="${f1(h[1]-1)}" class="eq bar"/>`;
-  if(a==="handle")eqf+=`<line x1="${f1(h[0])}" y1="${f1(h[1]-6)}" x2="${f1(h[0])}" y2="${f1(h[1]+6)}" class="eq bar"/>`+Ln([h[0],h[1]],[160,h[1]-2],"eq thin");
-  if(a==="pad")eqf+=C(L1.a,4.2,"eq fill");
+  if(a==="handle")eqf+=`<line x1="${f1(h[0])}" y1="${f1(h[1]-6)}" x2="${f1(h[0])}" y2="${f1(h[1]+6)}" class="eq bar"/>`+Ln([h[0],h[1]],[160,h[1]-2],"eq");
+  // machine à levier (leg extension, leg curl) : pivot au genou, bras le long du tibia, boudin sur la cheville (devant ou derrière)
+  if(a==="lever"){const Fs=frame(L1.k,L1.a),sd=sideOf(L1.k,L1.a,ant)*(x.pad||1),pc=[L1.a[0]+Fs.nx*sd*5-Fs.tx*2,L1.a[1]+Fs.ny*sd*5-Fs.ty*2];
+    eqf+=Ln(L1.k,pc,"eq bar")+C(pc,4.6,"eq fill")+C(L1.k,2.6,"eq pivot")}
   if(a==="platform")eqf+=Ln([L1.a[0]-13,L1.a[1]-15],[L1.a[0]+13,L1.a[1]+15],"eq bench");
   if(a==="plateHip")eqf+=`<circle cx="${f1(hip[0]+ant[0]*9)}" cy="${f1(hip[1]+ant[1]*9)}" r="9" class="eq plate"/>`;
   if(a==="barBack")eqb+=`<circle cx="${f1(sh[0]-ant[0]*4-ux*3)}" cy="${f1(sh[1]-ant[1]*4-uy*3)}" r="10" class="eq plate"/>`;
@@ -1428,7 +1473,7 @@ function figTick(now){
 const FIGVB={};
 function fitFig(el,x){
   if(!FIGVB[x.id]){let a=[1e9,1e9,-1e9,-1e9];
-    for(const u of [0,1]){el.innerHTML=figSVG(x,u);for(const c of el.children){if(c.classList.contains("gr"))continue;try{const b=c.getBBox();if(!b.width&&!b.height)continue;a=[Math.min(a[0],b.x),Math.min(a[1],b.y),Math.max(a[2],b.x+b.width),Math.max(a[3],b.y+b.height)]}catch{}}}
+    for(const u of [0,.25,.5,.75,1]){el.innerHTML=figSVG(x,u);for(const c of el.children){if(c.classList.contains("gr"))continue;try{const b=c.getBBox();if(!b.width&&!b.height)continue;a=[Math.min(a[0],b.x),Math.min(a[1],b.y),Math.max(a[2],b.x+b.width),Math.max(a[3],b.y+b.height)]}catch{}}}
     if(a[0]>a[2])return;const pad=8;let x0=a[0]-pad,x1=a[2]+pad,y0=a[1]-pad,y1=Math.max(a[3],140)+6;
     let w=x1-x0,h=y1-y0;if(w<h*1.05){const d=(h*1.05-w)/2;x0-=d;w=h*1.05}if(h<w*.62){y0-=(w*.62-h);h=w*.62}
     FIGVB[x.id]=`${x0.toFixed(1)} ${y0.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`;el.innerHTML=figSVG(x,0)}
