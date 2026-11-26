@@ -1890,7 +1890,7 @@ let coachText=ls.get("coachText","");
 function coachCard(){
   if(draft.coach)return `<div class="card"><div class="row between"><span class="label">${draft.planId?"Séance prévue par ton coach":"Séance de ton coach"}</span><button class="link" id="coachRedo">Changer</button></div>
     <h2>${esc(draft.coach.titre)}</h2>${draft.coach.notes?`<p class="consigne">${esc(draft.coach.notes)}</p>`:""}</div>`;
-  return `<details class="card" id="coachBox" ${coachOpen||coachBusy?"open":""}><summary class="sum"><span><h3>Coller une séance reçue par message</h3><span class="hint">${sampleFn?"Même en vrac, Claude la remet au propre.":"Un exercice par ligne, ex. « Tractions 4x8 »."}</span></span></summary>
+  return `<details class="card" id="coachBox" ${coachOpen||coachBusy?"open":""}><summary class="sum"><span><h3>Coller une séance reçue par message</h3><span class="hint">${sampleFn?"Même en vrac, elle est remise au propre.":"Un exercice par ligne, ex. « Tractions 4x8 »."}</span></span></summary>
     <textarea class="big" id="coachIn" rows="6" placeholder="ex : pull aujourd'hui, tractions 4 séries max, rowing barre 4x10 à 40 kg repos 1min30, curl 3x12 en superset avec face pull">${esc(coachText)}</textarea>
     ${imgOk?`<div class="inp"><label class="label" for="coachImg">Ou une capture d'écran du message</label><input type="file" id="coachImg" accept="image/*"></div>`:""}
     <div class="row"><button class="btn small" id="coachGo" ${coachBusy?"disabled":""}>Préparer ma séance</button>${coachBusy?`<button class="chip" id="coachStop">Arrêter</button>`:""}<p class="msg" id="coachStatus">${coachBusy?"Préparation en cours…":""}</p></div></details>`;
@@ -1919,28 +1919,44 @@ Message du coach :
 ${txt||"(voir la capture d'écran)"}`;
 }
 function parseNote(txt){
-  const out={push:[],pull:[],full:[],legs:[]};let cur=null;
+  const out={push:[],pull:[],full:[],legs:[]};let cur=null,seen=false;
   const head=[[/\b(push|pousse|pecs?)\b/i,"push"],[/\b(pull|tire|dos)\b/i,"pull"],[/\b(full\s*-?\s*body|full|fb|corps\s+entier)\b/i,"full"],[/\b(legs?|jambes?|cuisses?)\b/i,"legs"]];
   const sr=/(\d+)\s*(?:s[ée]ries?\s*(?:de|x)?|[x×*])\s*(\d+\s*(?:-|à)\s*\d+|\d+|max)\s*(s\b|sec\b|reps?\b)?/i;
   const slash=/(\d+)(?:\s*\/\s*\d+)+/;
-  for(let raw of txt.split(/\r?\n/)){
-    const line=raw.replace(/^[\s\-•*·#>]+/,"").replace(/^\d+[.)]\s+/,"").trim();if(!line)continue;
+  // une ligne peut contenir plusieurs exercices, séparés par des virgules ou des points-virgules
+  for(let raw of txt.split(/\r?\n|;|,(?=\s*\p{L})/u)){
+    const full=raw.replace(/^[\s\-•*·#>]+/,"").replace(/^\d+[.)]\s+/,"").trim();if(!full)continue;
+    // la charge (« à 50 kg ») et le repos sont retirés d'abord, pour ne pas être lus comme des reps (« 10 à 50 »)
+    const kg=full.match(/(?:\s+à\s*|\s*@\s*)?(\d+(?:[.,]\d+)?)\s*kg\b/i);
+    let line=(kg?full.replace(kg[0]," "):full).replace(/\brepos\b.*$/i,"").trim();
+    // « Push : pompes 3x15 » : le type en tête de ligne
+    const hd=line.match(/^(push|pull|legs?|full(?:\s*-?\s*body)?|jambes|pousse|tire|dos|pecs?)\s*[:\-–—]\s*/i);
+    if(hd){for(const [re,t] of head)if(re.test(hd[1])){cur=t;seen=true;break}line=line.slice(hd[0].length)}
     let m=line.match(sr),sets,reps;
     if(m){sets=parseInt(m[1]);reps=m[2].replace(/\s/g,"").replace("à","-")+(m[3]&&/s|sec/i.test(m[3])?"s":"")}
     else if((m=line.match(slash))){const parts=m[0].split("/").map(s=>s.trim());sets=parts.length;reps=parts.join("/")}
-    if(!m){for(const [re,t] of head)if(re.test(line)&&line.length<40){cur=t;break}continue}
+    if(!m){for(const [re,t] of head)if(re.test(line)&&line.length<40){cur=t;seen=true;break}continue}
     if(!cur)cur="push";
     let name=line.replace(m[0],"").replace(/\b(PDC|NA)\b/gi,"").replace(/[:–—\-|,\t]+\s*$/,"").replace(/^\s*[:–—\-|]+/,"").replace(/\s{2,}/g," ").trim();
     if(!name)continue;
-    out[cur].push({name:name.charAt(0).toUpperCase()+name.slice(1),sets,reps,pdc:/pompe|traction|dips|\bchin|gainage|\bpdc\b/i.test(line)});
+    out[cur].push({name:name.charAt(0).toUpperCase()+name.slice(1),sets,reps,charge:kg?parseFloat(kg[1].replace(",",".")):null,pdc:/pompe|traction|dips|\bchin|gainage|\bpdc\b/i.test(line)});
   }
+  out.seen=seen;
   return out;
 }
+// type de séance deviné d'après les exercices, quand le message ne le dit pas
+const TYPE_RE={legs:/squat|presse|fente|mollet|leg ?(curl|ext|press)|hip ?thrust|souleve|deadlift|\brdl\b|ischio|quadri|adducteur|abducteur|jambe/,
+  pull:/traction|tirage|rowing|\brow\b|curl|pull|chin|oiseau|face ?pull|shrug|lombaire/,
+  push:/pompe|dips|developpe|press|elevation|triceps|ecarte|pec ?deck|butterfly|militaire/};
+function guessType(names){const c={push:0,pull:0,legs:0};
+  for(const n of names){const k=key(n);for(const t of ["legs","pull","push"])if(TYPE_RE[t].test(k)){c[t]++;break}}
+  const tot=c.push+c.pull+c.legs;if(!tot)return "push";if(c.legs===tot)return "legs";
+  return c.push>=tot*.75?"push":c.pull>=tot*.75?"pull":"full"}
 function fallbackParse(txt){
-  const p=parseNote(txt);const t=GYM.reduce((a,b)=>p[b].length>p[a].length?b:a,"push");
-  const ex=GYM.flatMap(k=>p[k]);if(!ex.length)return null;
+  const p=parseNote(txt);const ex=GYM.flatMap(k=>p[k]);if(!ex.length)return null;
+  const t=p.seen?GYM.reduce((a,b)=>p[b].length>p[a].length?b:a,"push"):guessType(ex.map(x=>x.name));
   return {type:t,titre:"Séance du jour",echauffement:[],cardio:"",notes:"",
-    exercices:ex.map(x=>({nom:x.name,series:x.sets,reps:String(x.reps).includes("/")?String(x.reps).split("/"):Array(x.sets).fill(String(x.reps)),charge:null,pdc:x.pdc,repos_s:null,consigne:""}))};
+    exercices:ex.map(x=>({nom:x.name,series:x.sets,reps:String(x.reps).includes("/")?String(x.reps).split("/"):Array(x.sets).fill(String(x.reps)),charge:x.charge??null,pdc:x.pdc,repos_s:null,consigne:""}))};
 }
 const fmtRest=s=>s>=60?(Math.floor(s/60)+" min"+(s%60?" "+String(s%60).padStart(2,"0"):"")):s+" s";
 function applyCoach(j,planId){
@@ -1969,9 +1985,10 @@ async function structureText(txt,file,signal){
   if(!sampleFn){const j=fallbackParse(txt);if(!j)throw {code:"no_match"};return j}
   const opts={modelTier:"quick",signal};if(file&&imgOk)opts.images=[file];
   try{return await sampleFn.json(coachPrompt(txt),opts)}
-  catch(e){const c=e&&e.code;
-    if(["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(c)){sampleFn=null;const j=fallbackParse(txt);if(j)return j;throw {code:"no_match"}}
-    throw e}
+  catch(e){const c=e&&e.code;if(c==="cancelled")throw e;
+    if(["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"].includes(c))sampleFn=null;
+    // la mise au propre n'a pas répondu : on lit quand même le texte ici (un exercice par ligne, ex. « Tractions 4x8 »)
+    const j=txt&&fallbackParse(txt);if(j)return j;throw c?e:{code:"upstream_error"}}
 }
 const errText=c=>({no_match:"Aucun exercice reconnu. Mets un exercice par ligne avec séries × reps.",rate_limited:"Trop de demandes. Réessaie dans quelques minutes.",image_rejected:"Image illisible. Essaie une autre capture ou colle le texte."}[c]||"La préparation a échoué. Réessaie.");
 async function runCoach(btn){
@@ -2472,7 +2489,7 @@ function renderBackup(){
   const em=window.REPZ.account&&window.REPZ.account();
   $("#bkAcct").innerHTML=em?`Compte : <b>${esc(em)}</b>, tes séances sont sauvegardées en ligne. <button class="link" id="bkOut">Se déconnecter</button>`:"";
   $("#bkName").innerHTML=`Prénom : <b>${esc(window.REPZ.name()||"")}</b> <button class="link" id="bkNameEd">Changer</button>`;
-  $("#bkKey").innerHTML=window.REPZ.hasKey()?`Clé Claude enregistrée (pour « Coller une séance »). <button class="link" id="bkKeyDel">Retirer la clé</button>`:"Clé Claude : pas encore enregistrée. Elle te sera demandée la première fois que tu colles une séance.";
+  $("#bkKey").innerHTML=window.REPZ.hasKey()?`Clé Claude enregistrée : « Coller une séance » passe par elle. <button class="link" id="bkKeyDel">Retirer la clé</button>`:"« Coller une séance » : mise au propre gratuite, aucune clé à saisir.";
 }
 $("#backupCard").addEventListener("click",async e=>{
   const m=$("#bkMsg");

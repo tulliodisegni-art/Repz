@@ -1,5 +1,6 @@
 /* Repz, version installable : remplace window.claude (base de données, identité, IA) par des équivalents locaux.
-   Tout reste sur le téléphone (IndexedDB). La mise au propre des séances passe par la clé Anthropic de la personne. */
+   Tout reste sur le téléphone (IndexedDB). La mise au propre des séances passe par la fonction « ia » partagée
+   (gratuite, sans clé à saisir) ; une clé Anthropic déjà enregistrée sur le téléphone reste utilisée. */
 (()=>{
 "use strict";
 window.REPZ_PWA=true;
@@ -117,27 +118,6 @@ const user=Object.freeze({isOwner:async()=>true,canEdit:async()=>true,can:async(
 /* ---------- IA : Claude avec la clé de la personne ---------- */
 const MODELS={quick:"claude-haiku-5-5",default:"claude-sonnet-5-5",complex:"claude-opus-5-5"};
 const err=(code,text)=>{const e=new Error(text||code);e.code=code;return e};
-function askKey(){
-  return new Promise(res=>{
-    const w=document.createElement("div");
-    w.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(10,19,48,.6);display:flex;align-items:center;justify-content:center;padding:16px;font-family:Barlow,-apple-system,sans-serif";
-    w.innerHTML=`<div style="background:#fff;color:#0A1330;border-radius:20px;max-width:420px;width:100%;padding:24px 20px;box-shadow:0 8px 24px rgba(10,19,48,.16)">
-      <h3 style="margin:0 0 8px;font:600 1.125rem Barlow,sans-serif">Mettre une séance au propre</h3>
-      <p style="margin:0 0 12px;line-height:1.45;font-size:.95rem">Pour lire un message en vrac et en faire une séance, Repz utilise Claude avec ta propre clé Anthropic (la même que pour Mijonote). Elle reste sur ce téléphone et coûte quelques centimes par séance.</p>
-      <p style="margin:0 0 12px;font-size:.9rem"><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#1C3170;font-weight:600">Créer une clé sur console.anthropic.com</a></p>
-      <input type="password" autocomplete="off" placeholder="sk-ant-..." style="width:100%;box-sizing:border-box;padding:.75rem;border:1px solid rgba(10,19,48,.16);border-radius:10px;font-size:16px">
-      <p data-e style="color:#D02B1F;font-size:.85rem;min-height:1em;margin:6px 0 0"></p>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
-        <button data-c style="padding:.65rem 1rem;border-radius:12px;border:1px solid rgba(10,19,48,.16);background:#fff;font-size:1rem;font-weight:500">Annuler</button>
-        <button data-o style="padding:.65rem 1.2rem;border-radius:12px;border:0;background:#0A1330;color:#fff;font-weight:600;font-size:1rem">Enregistrer</button>
-      </div></div>`;
-    document.body.appendChild(w);
-    const inp=w.querySelector("input");setTimeout(()=>inp.focus(),50);
-    const done=v=>{w.remove();res(v)};
-    w.querySelector("[data-c]").onclick=()=>done(false);
-    w.querySelector("[data-o]").onclick=()=>{const k=inp.value.trim();if(!/^sk-/.test(k)){w.querySelector("[data-e]").textContent="La clé commence par « sk- ».";return}try{localStorage.setItem(KEY,k)}catch{}done(true)};
-  });
-}
 async function imgPart(blob){
   let type=blob.type||"image/jpeg",out=blob;
   if(!/^image\/(jpeg|png|webp|gif)$/.test(type)||blob.size>3.5e6){
@@ -148,8 +128,31 @@ async function imgPart(blob){
   const b64=await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=()=>ko(r.error);r.readAsDataURL(out)});
   return {type:"image",source:{type:"base64",media_type:type,data:b64}};
 }
+/* Sans clé sur le téléphone (cas normal) : la lecture passe par la fonction « ia » partagée avec Mijonote et Good Food (Supabase),
+   qui garde la clé côté serveur (offre gratuite). Rien à payer ni à saisir pour la personne. */
+const IA={url:"https://vvxkkqcmjrwytagbxdfg.supabase.co/functions/v1/ia",key:"sb_publishable_A-kJQIoJXxdXmjHF8iM40g_RP6myhMo"};
+async function jpeg64(blob,max=1568,q=.82){
+  let out;
+  try{const bmp=await createImageBitmap(blob,{imageOrientation:"from-image"});const s=Math.min(1,max/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas");c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close&&bmp.close();
+    out=await new Promise(r=>c.toBlob(r,"image/jpeg",q))}catch{throw err("image_rejected")}
+  return await new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=()=>ko(r.error);r.readAsDataURL(out)});
+}
+// rapide : la fonction commence par son modèle le plus rapide et ne laisse aucun essai traîner (30 s au plus en tout)
+async function callServer(input,o){
+  const prompt=typeof input==="string"?input:input.map(m=>(m.role==="assistant"?"Ta réponse précédente : ":"")+m.content).join("\n\n");
+  if(prompt.length>30000)throw err("prompt_too_large");
+  const images=[];for(const b of (o.images?Array.from(o.images):[]).slice(0,4))images.push(await jpeg64(b));
+  let r;
+  try{r=await fetch(IA.url,{method:"POST",signal:o.signal,headers:{"content-type":"application/json",apikey:IA.key},body:JSON.stringify({prompt,images,web:false,rapide:true})})}
+  catch(e){if(o.signal&&o.signal.aborted)throw err("cancelled");throw err("upstream_error")}
+  const out=await r.json().catch(()=>({}));
+  if(!r.ok){if((out.status||r.status)===429)throw err("rate_limited");throw err("upstream_error")}
+  const text=String(out.text||"");o.onText&&o.onText({text,delta:text});
+  return {text,truncated:false,modelTierApplied:"serveur"};
+}
 async function call(input,o={}){
-  if(!getKey()&&!(await askKey()))throw err("not_granted");
+  if(!getKey())return callServer(input,o);
   const msgs=typeof input==="string"?[{role:"user",content:input}]:input.map(m=>({role:m.role,content:m.content}));
   const imgs=o.images?[].concat(Array.from(o.images)):[];
   if(imgs.length){const last=msgs[msgs.length-1];const parts=[];for(const b of imgs)parts.push(await imgPart(b));last.content=[...parts,{type:"text",text:String(last.content)}]}
@@ -158,7 +161,8 @@ async function call(input,o={}){
       headers:{"content-type":"application/json","x-api-key":getKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({model,max_tokens:8000,messages:msgs})})}
   catch(e){if(o.signal&&o.signal.aborted)throw err("cancelled");throw err("upstream_error")}
-  if(!r.ok){if(r.status===401){try{localStorage.removeItem(KEY)}catch{}throw err("not_granted")}if(r.status===429||r.status===529)throw err("rate_limited");throw err("upstream_error")}
+  // clé refusée (retirée, expirée) : on l'oublie et on passe par la fonction partagée, sans rien demander
+  if(!r.ok){if(r.status===401){try{localStorage.removeItem(KEY)}catch{}return callServer(input,o)}if(r.status===429||r.status===529)throw err("rate_limited");throw err("upstream_error")}
   const j=await r.json();const text=(j.content||[]).filter(c=>c.type==="text").map(c=>c.text).join("");
   o.onText&&o.onText({text,delta:text});
   return {text,truncated:j.stop_reason==="max_tokens",modelTierApplied:o.modelTier||"default"};
@@ -167,7 +171,14 @@ function parseJSON(t){
   t=String(t||"").trim().replace(/^```(?:json)?\s*/i,"").replace(/```\s*$/,"");
   try{return JSON.parse(t)}catch{}
   const s=t.search(/[\[{]/);if(s<0)throw err("invalid_json");const close=t[s]==="{"?"}":"]",e=t.lastIndexOf(close);
-  try{return JSON.parse(t.slice(s,e+1))}catch{throw err("invalid_json")}
+  try{return JSON.parse(t.slice(s,e+1))}catch{}
+  // texte autour ou accolade en trop : on garde la première valeur JSON complète
+  let d=0,q=false,es=false;
+  for(let i=s;i<t.length;i++){const c=t[i];
+    if(q){if(es)es=false;else if(c==="\\")es=true;else if(c==='"')q=false;continue}
+    if(c==='"')q=true;else if(c==="{"||c==="[")d++;
+    else if((c==="}"||c==="]")&&--d===0){try{return JSON.parse(t.slice(s,i+1))}catch{break}}}
+  throw err("invalid_json");
 }
 const NOTE="\n\nRéponds uniquement avec le JSON demandé, sans texte autour ni balises de code.";
 const sample=Object.freeze(Object.assign((i,o)=>call(i,o),{
